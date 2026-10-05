@@ -8,7 +8,38 @@ What this fork adds on top of Harper:
 - **Offline AI suggestions**: an optional, free, open-weight language model (Qwen2.5, Apache-2.0) that runs entirely on your PC for deeper, Grammarly-style fixes. No API key, no subscription, nothing leaves your computer.
 - **Windows installer** built automatically by GitHub Actions.
 
-Harper is licensed under Apache-2.0; see [LICENSE](LICENSE). This project keeps that license and credits the Harper authors for the core grammar engine.
+## Install
+
+1. Open the latest successful [Windows installer](../../actions/workflows/windows_installer.yml) run and download the `harper-windows-installer` artifact.
+2. Unzip it and run the `Harper for Windows_*_x64-setup.exe` inside. Windows SmartScreen may warn that the app is unrecognized because it isn't code-signed yet; choose **More info → Run anyway**.
+3. Follow the short setup. Harper then sits in the system tray and checks whatever you type.
+4. Optional: open **Settings → AI Suggestions** and download a model for deeper suggestions.
+
+## How it works
+
+- **Harper rules** (instant): Harper's rule engine checks the focused text box through Windows UI Automation and draws underlines over mistakes. Clicking an underline shows the fixes; picking one selects the text in the app and types the correction, so it works in Chrome, Electron apps and Office, and Ctrl+Z undoes it.
+- **AI suggestions** (a second or two after you pause): a quantized Qwen2.5 model runs on your CPU through [candle](https://github.com/huggingface/candle), one sentence at a time. Its correction is diffed against what you wrote, and each changed word becomes its own underline. Heavy rewrites are discarded, and finished sentences are cached so only what you edit is re-checked.
+
+| Model | Download | Speed on a typical laptop | Best for |
+|---|---|---|---|
+| Fast (Qwen2.5 0.5B) | about 500 MB | quick | any PC |
+| Accurate (Qwen2.5 1.5B, default) | about 1.1 GB | slower | PCs with 8 GB of RAM or more |
+
+The models are downloaded from Hugging Face on first use; they are not bundled with the installer. Qwen2.5 is licensed under Apache-2.0 by the Qwen team.
+
+## Quality
+
+`harper-ai/tests/data/tricky.jsonl` holds 288 sentences: the mistakes Grammarly is known for catching, plus correct sentences that must be left alone. Every pull request runs `cargo run -p harper-ai --release --example benchmark` against both models and posts the scores as a "Benchmark results" check.
+
+## Building
+
+- AI checker tests: `cargo test -p harper-ai`
+- Desktop unit tests: `cd harper-desktop/src-tauri && cargo test --lib`
+- Windows installer: `just build-desktop-windows` (cross-compiles from Linux with `cargo-xwin`; this is what CI runs)
+
+## License
+
+Harper is licensed under Apache-2.0; see [LICENSE](LICENSE). This project keeps that license and credits the Harper authors for the core grammar engine. `harper-ai/src/qwen2.rs` is adapted from candle-transformers (MIT OR Apache-2.0).
 
 ---
 
