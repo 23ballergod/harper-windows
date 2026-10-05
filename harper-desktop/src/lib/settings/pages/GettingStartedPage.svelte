@@ -8,7 +8,7 @@ import AppIcon from '../components/AppIcon.svelte';
 
 /** Slide identities determine setup gates; only the welcome and test drive need no action. */
 type OnboardingSlide = {
-	id: 'welcome' | 'accessibility' | 'integration' | 'test-drive' | 'ready';
+	id: 'welcome' | 'accessibility' | 'integration' | 'ai' | 'test-drive' | 'ready';
 	title: string;
 	lede: string;
 };
@@ -41,6 +41,30 @@ const allSlides: OnboardingSlide[] = [
 	},
 ];
 
+/** Windows checks every app by default, like Grammarly, so there is no per-app setup step. */
+const windowsSlides: OnboardingSlide[] = [
+	{
+		id: 'welcome',
+		title: 'Welcome',
+		lede: 'Harper checks your writing in every app you type in: Chrome, the Claude app, Word, Notepad and more.\n\nEverything runs on your PC. None of your text leaves your device.',
+	},
+	{
+		id: 'ai',
+		title: 'AI Suggestions',
+		lede: 'Harper catches most mistakes instantly. For deeper fixes, like wrong word choices and awkward grammar, it can also use a free AI model that runs on your PC.\n\nThe model is a one-time download of about 1.1 GB. You can skip this and download it later from Settings.',
+	},
+	{
+		id: 'test-drive',
+		title: 'Try Harper',
+		lede: 'Open Notepad (or any text box in Chrome) and write something like, "This is an test."\n\nYou should see Harper underline the mistake. Click the underline to fix it.',
+	},
+	{
+		id: 'ready',
+		title: 'Ready',
+		lede: "You're all set. Harper lives in the system tray, next to the clock.\n\nWrite anything, anywhere and Harper will be there to catch your mistakes.",
+	},
+];
+
 export let onComplete: () => void;
 
 let step = 0;
@@ -57,14 +81,17 @@ let isLaunchingTextEdit = false;
 let testDriveError = '';
 let isCompletingOnboarding = false;
 let onboardingError = '';
+let aiDownloadStarted = false;
+let aiError = '';
 
-$: slides = allSlides.filter((slide) => slide.id !== 'accessibility' || isMacOS);
+$: slides = isMacOS ? allSlides : windowsSlides;
 $: textEditIntegration = integrations.find((item) => item.bundle_id === 'com.apple.TextEdit');
 $: isTextEditEnabled = textEditIntegration?.enabled === true;
 $: accessibilityReady =
 	(!isMacOS || accessibilityStatus === 'Granted') && !isPreparingService && !setupError;
 $: integrationReady =
-	isTextEditEnabled && !isLoadingIntegrations && !isEnablingTextEdit && !integrationsError;
+	!isMacOS ||
+	(isTextEditEnabled && !isLoadingIntegrations && !isEnablingTextEdit && !integrationsError);
 $: nextDisabled = !canAdvance(slides[step].id, accessibilityReady, integrationReady, isMacOS);
 
 onMount(() => {
@@ -118,13 +145,24 @@ async function enableTextEditForSetup() {
 	}
 }
 
+async function downloadAiModel() {
+	aiError = '';
+	try {
+		await Client.setAiSettings({ enabled: true, model: 'Accurate' });
+		await Client.downloadAiModel('Accurate');
+		aiDownloadStarted = true;
+	} catch (error) {
+		aiError = `Unable to start the download: ${error}`;
+	}
+}
+
 async function launchTextEditForTestDrive() {
 	if (!accessibilityReady || !integrationReady || isLaunchingTextEdit) return;
 	isLaunchingTextEdit = true;
 	testDriveError = '';
 
 	try {
-		await Client.launchApp('com.apple.TextEdit');
+		await Client.launchApp(isMacOS ? 'com.apple.TextEdit' : 'notepad.exe');
 	} catch (error) {
 		testDriveError = `Unable to launch TextEdit: ${error}`;
 	} finally {
@@ -261,13 +299,25 @@ async function prepareService(request = false) {
           <strong>TextEdit</strong>
         </div>
       </div>
+    {:else if slides[step].id === 'ai'}
+      <div class="onboarding-actions">
+        {#if aiDownloadStarted}
+          <p role="status">Downloading in the background. AI suggestions turn on when it finishes.</p>
+        {/if}
+        {#if aiError}
+          <p role="alert">{aiError}</p>
+        {/if}
+        <Button disabled={aiDownloadStarted} on:click={downloadAiModel}>
+          {aiDownloadStarted ? 'Downloading...' : 'Download AI Model'}
+        </Button>
+      </div>
     {:else if slides[step].id === 'test-drive'}
       <div class="onboarding-actions">
         {#if testDriveError}
           <p role="alert">{testDriveError}</p>
         {/if}
         <Button disabled={isLaunchingTextEdit} on:click={launchTextEditForTestDrive}>
-          {isLaunchingTextEdit ? 'Launching...' : 'Launch TextEdit'}
+          {isLaunchingTextEdit ? 'Launching...' : isMacOS ? 'Launch TextEdit' : 'Open Notepad'}
         </Button>
       </div>
     {:else if slides[step].id === 'ready'}

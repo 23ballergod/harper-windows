@@ -39,7 +39,8 @@ impl Config {
             ignored_lints: IgnoredLints::new(),
             lint_config: FlatConfig::new_curated(),
             integrations: Integration::curated_integrations(),
-            auto_enable_new_apps: false,
+            // On Windows, check every app by default, the way Grammarly does.
+            auto_enable_new_apps: cfg!(target_os = "windows"),
             onboarding_completed: false,
             debounce_ms: 0,
             auto_update: true,
