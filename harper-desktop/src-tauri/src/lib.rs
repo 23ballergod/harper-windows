@@ -31,6 +31,7 @@ use tokio::{
     sync::Mutex,
 };
 
+mod ai;
 pub mod color;
 mod commands;
 pub mod communication;
@@ -181,6 +182,7 @@ pub fn run_tauri() {
     tauri::Builder::default()
         .manage(config)
         .manage(desktop_updater::DesktopUpdater::default())
+        .manage(ai::AiDownloads::default())
         .manage(highlighter_service)
         .manage(StdMutex::new(broker))
         .manage(async_runtime)
@@ -322,6 +324,9 @@ pub fn run_highlighter(has_parent: bool) {
     let refresh_debounce_ms = debounce_ms.clone();
     let refresh_linter = linter.clone();
 
+    let mut ai_runtime = ai::AiRuntime::new();
+    let ai_linter = linter.clone();
+
     let lint_text = move |text: &str| {
         let debounce_ms = *lint_debounce_ms.borrow();
         let mut debounce_state = lint_debounce_state.borrow_mut();
@@ -343,6 +348,14 @@ pub fn run_highlighter(has_parent: bool) {
         debounce_state.store_lints(text, debounce_ms, &organized_lints);
 
         organized_lints
+    };
+
+    // AI suggestions arrive asynchronously, so they are merged outside the debounce cache: a
+    // result that lands after Harper's lints were cached still shows up on the next frame.
+    let lint_text = move |text: &str| {
+        let mut lints = lint_text(text);
+        ai_runtime.add_lints(text, &ai_linter.borrow().config, &mut lints);
+        lints
     };
 
     let ignore_lint = move |lint: &Lint, document: &Document| {

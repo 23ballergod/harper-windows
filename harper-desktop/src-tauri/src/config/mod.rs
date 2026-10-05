@@ -170,9 +170,9 @@ impl Config {
             .with_lint_config(self.lint_config.clone())
     }
 
-    #[allow(dead_code)]
-    fn folder_path() -> Option<PathBuf> {
-        dirs::config_dir().map(|path| path.join("harper-desktop"))
+    /// Uses its own folder so settings never collide with an upstream Harper Desktop install.
+    pub(crate) fn folder_path() -> Option<PathBuf> {
+        dirs::config_dir().map(|path| path.join("harper-windows"))
     }
 
     #[allow(dead_code)]
@@ -425,7 +425,7 @@ mod tests {
         assert_eq!(path.file_name().unwrap(), "config.json");
         assert_eq!(
             path.parent().unwrap().file_name().unwrap(),
-            "harper-desktop"
+            "harper-windows"
         );
     }
 
@@ -444,7 +444,7 @@ mod tests {
         assert_eq!(path.file_name().unwrap(), "dictionary.txt");
         assert_eq!(
             path.parent().unwrap().file_name().unwrap(),
-            "harper-desktop"
+            "harper-windows"
         );
     }
 }
