@@ -2775,6 +2775,7 @@ dependencies = [
  "candle-transformers",
  "harper-core",
  "serde",
+ "serde_json",
  "similar",
  "tokenizers",
  "tracing",
