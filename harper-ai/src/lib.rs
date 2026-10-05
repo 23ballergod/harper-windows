@@ -8,6 +8,7 @@ mod checker;
 mod diff;
 mod engine;
 mod models;
+mod qwen2;
 mod sentences;
 
 pub use checker::{AiChecker, CheckerStatus};

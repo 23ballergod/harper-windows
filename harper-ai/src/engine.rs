@@ -2,10 +2,10 @@
 
 use std::path::Path;
 
+use crate::qwen2::ModelWeights;
 use candle_core::quantized::gguf_file;
 use candle_core::{Device, Tensor};
 use candle_transformers::generation::{LogitsProcessor, Sampling};
-use candle_transformers::models::quantized_qwen2::ModelWeights;
 use tokenizers::Tokenizer;
 
 /// Anything that can turn a sentence into its corrected form.
@@ -40,6 +40,9 @@ pub struct QwenCorrector {
     tokenizer: Tokenizer,
     device: Device,
     eos_tokens: Vec<u32>,
+    /// The attention cache after reading the instructions and examples, which never change.
+    prefix_cache: Vec<Option<(Tensor, Tensor)>>,
+    prefix_len: usize,
 }
 
 impl QwenCorrector {
@@ -58,45 +61,62 @@ impl QwenCorrector {
             .filter_map(|t| tokenizer.token_to_id(t))
             .collect();
 
-        Ok(Self {
+        let mut corrector = Self {
             model,
             tokenizer,
             device,
             eos_tokens,
-        })
+            prefix_cache: Vec::new(),
+            prefix_len: 0,
+        };
+        corrector.warm_prefix()?;
+        Ok(corrector)
     }
 
-    fn prompt(sentence: &str) -> String {
+    /// The part of the prompt that is the same for every sentence.
+    fn prefix() -> String {
         let mut prompt = format!("<|im_start|>system\n{SYSTEM_PROMPT}<|im_end|>\n");
         for (input, output) in EXAMPLES {
             prompt.push_str(&format!(
                 "<|im_start|>user\n{input}<|im_end|>\n<|im_start|>assistant\n{output}<|im_end|>\n"
             ));
         }
-        prompt.push_str(&format!(
-            "<|im_start|>user\n{sentence}<|im_end|>\n<|im_start|>assistant\n"
-        ));
+        prompt.push_str("<|im_start|>user\n");
         prompt
+    }
+
+    fn suffix(sentence: &str) -> String {
+        format!("{sentence}<|im_end|>\n<|im_start|>assistant\n")
+    }
+
+    fn encode(&self, text: &str) -> Result<Vec<u32>, String> {
+        self.tokenizer
+            .encode(text, false)
+            .map(|e| e.get_ids().to_vec())
+            .map_err(|e| e.to_string())
+    }
+
+    /// Runs the shared prefix through the model once and keeps its attention cache.
+    fn warm_prefix(&mut self) -> Result<(), String> {
+        let tokens = self.encode(&Self::prefix())?;
+        self.model.clear_kv_cache();
+        let input = Tensor::new(tokens.as_slice(), &self.device)
+            .and_then(|t| t.unsqueeze(0))
+            .map_err(|e| e.to_string())?;
+        self.model.forward(&input, 0).map_err(|e| e.to_string())?;
+        self.prefix_cache = self.model.snapshot_kv_cache();
+        self.prefix_len = tokens.len();
+        Ok(())
     }
 }
 
 impl Corrector for QwenCorrector {
     fn correct(&mut self, sentence: &str) -> Result<String, String> {
-        let prompt = Self::prompt(sentence);
-        let encoding = self
-            .tokenizer
-            .encode(prompt, false)
-            .map_err(|e| e.to_string())?;
-        let prompt_tokens = encoding.get_ids().to_vec();
-
-        let input_len = self
-            .tokenizer
-            .encode(sentence, false)
-            .map(|e| e.get_ids().len())
-            .unwrap_or(64);
+        let prompt_tokens = self.encode(&Self::suffix(sentence))?;
+        let input_len = self.encode(sentence).map(|t| t.len()).unwrap_or(64);
         let max_new = input_len * 3 / 2 + 16;
 
-        self.model.clear_kv_cache();
+        self.model.restore_kv_cache(&self.prefix_cache);
         // Greedy decoding: corrections should be deterministic.
         let mut sampler = LogitsProcessor::from_sampling(0, Sampling::ArgMax);
 
@@ -105,7 +125,7 @@ impl Corrector for QwenCorrector {
             .map_err(|e| e.to_string())?;
         let logits = self
             .model
-            .forward(&input, 0)
+            .forward(&input, self.prefix_len)
             .and_then(|l| l.squeeze(0))
             .map_err(|e| e.to_string())?;
         let mut next = sampler.sample(&logits).map_err(|e| e.to_string())?;
@@ -122,7 +142,7 @@ impl Corrector for QwenCorrector {
                 .map_err(|e| e.to_string())?;
             let logits = self
                 .model
-                .forward(&input, prompt_tokens.len() + index)
+                .forward(&input, self.prefix_len + prompt_tokens.len() + index)
                 .and_then(|l| l.squeeze(0))
                 .map_err(|e| e.to_string())?;
             next = sampler.sample(&logits).map_err(|e| e.to_string())?;

@@ -13,3 +13,5 @@ tokenizers = { version = "0.22", default-features = false, features = ["onig"] }
 similar = "2"
 harper-core = { path = "../harper-core" }
 serde = { version = "1", features = ["derive"] }
+candle-nn = "0.11.0"
+tracing = "0.1"
