@@ -1,0 +1,15 @@
+[package]
+name = "harper-ai"
+version = "0.1.0"
+edition = "2024"
+description = "Local, offline AI grammar suggestions for Harper, powered by a small open-weight language model."
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+candle-core = "0.11.0"
+candle-transformers = "0.11.0"
+tokenizers = { version = "0.22", default-features = false, features = ["onig"] }
+similar = "2"
+harper-core = { path = "../harper-core" }
+serde = { version = "1", features = ["derive"] }
