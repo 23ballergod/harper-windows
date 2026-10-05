@@ -344,6 +344,7 @@ pub fn run_highlighter(has_parent: bool) {
         for lints in organized_lints.values_mut() {
             lint_ignored_lints.borrow().remove_ignored(lints, &doc);
         }
+        harper_ai::remove_false_alarms(doc.get_source(), organized_lints.values_mut());
 
         debounce_state.store_lints(text, debounce_ms, &organized_lints);
 

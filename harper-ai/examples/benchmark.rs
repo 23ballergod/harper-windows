@@ -10,7 +10,9 @@
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
-use harper_ai::{AiModel, Corrector, QwenCorrector, compute_edits, split_sentences};
+use harper_ai::{
+    AiModel, Corrector, QwenCorrector, compute_edits, is_probably_helpful, split_sentences,
+};
 use harper_core::linting::{LintGroup, Suggestion};
 use harper_core::spell::FstDictionary;
 use harper_core::{Dialect, Document};
@@ -54,6 +56,7 @@ fn apply_harper(linter: &mut LintGroup, text: &str) -> String {
             .into_values()
             .flatten()
             .filter(|l| !l.suggestions.is_empty())
+            .filter(|l| is_probably_helpful(&text.chars().collect::<Vec<_>>(), l))
             .collect();
         if lints.is_empty() {
             break;

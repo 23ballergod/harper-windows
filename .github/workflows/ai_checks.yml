@@ -31,6 +31,9 @@ jobs:
     name: Grammar benchmark (${{ matrix.model }} model)
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    permissions:
+      contents: read
+      checks: write
     strategy:
       fail-fast: false
       matrix:
@@ -59,11 +62,31 @@ jobs:
           [ -f models/qwen2.5-tokenizer.json ] || curl -fsSL -o models/qwen2.5-tokenizer.json https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/resolve/main/tokenizer.json
           ls -la models
       - name: Model smoke test
-        run: cargo run -p harper-ai --release --example correct -- models ${{ matrix.model }}
+        run: cargo run -p harper-ai --release --example correct -- models ${{ matrix.model }} | tee smoke-${{ matrix.model }}.txt
       - name: Benchmark on the tricky set
         run: |
           cargo run -p harper-ai --release --example benchmark -- models ${{ matrix.model }} 2>/dev/null | tee benchmark-${{ matrix.model }}.md
           cat benchmark-${{ matrix.model }}.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish results as a check
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            [ -f benchmark-${{ matrix.model }}.md ] && cat benchmark-${{ matrix.model }}.md
+            echo
+            echo '### Smoke test'
+            echo '```'
+            [ -f smoke-${{ matrix.model }}.txt ] && tail -c 20000 smoke-${{ matrix.model }}.txt
+            echo '```'
+          } > results.md
+          head -c 60000 results.md > summary.md
+          jq -n --arg name "Benchmark results (${{ matrix.model }})" \
+                --arg sha "${{ github.event.pull_request.head.sha || github.sha }}" \
+                --rawfile summary summary.md \
+                '{name: $name, head_sha: $sha, status: "completed", conclusion: "neutral",
+                  output: {title: $name, summary: $summary}}' \
+            | gh api repos/${{ github.repository }}/check-runs --input -
       - uses: actions/upload-artifact@v4
         with:
           name: benchmark-${{ matrix.model }}
