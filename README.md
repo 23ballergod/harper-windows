@@ -1,3 +1,17 @@
+# Harper for Windows
+
+A Windows grammar checker that works in any app you type in (Chrome, the Claude desktop app, Word, Notepad and more), built on the open-source [Harper](https://github.com/Automattic/harper) engine by Automattic.
+
+What this fork adds on top of Harper:
+
+- **Windows-first desktop app**: underlines mistakes in whatever text box has focus and shows fixes in a popup, with a tray icon.
+- **Offline AI suggestions**: an optional, free, open-weight language model (Qwen2.5, Apache-2.0) that runs entirely on your PC for deeper, Grammarly-style fixes. No API key, no subscription, nothing leaves your computer.
+- **Windows installer** built automatically by GitHub Actions.
+
+Harper is licensed under Apache-2.0; see [LICENSE](LICENSE). This project keeps that license and credits the Harper authors for the core grammar engine.
+
+---
+
 <div id="header" align="center">
     <img src="logo.svg" width="400px" />
     <h1>Harper</h1>
