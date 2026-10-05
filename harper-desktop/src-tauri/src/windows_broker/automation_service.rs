@@ -11,11 +11,17 @@ use uiautomation::types::{Handle, TextPatternRangeEndpoint, TextUnit, TreeScope,
 use uiautomation::variants::Variant;
 use uiautomation::{
     UIAutomation, UIElement,
-    patterns::{UITextPattern, UIValuePattern},
+    patterns::{UITextPattern, UITextRange, UIValuePattern},
 };
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
-use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
+use windows::Win32::UI::Input::KeyboardAndMouse::{
+    INPUT, INPUT_0, INPUT_KEYBOARD, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP,
+    KEYEVENTF_UNICODE, SendInput, VIRTUAL_KEY, VK_DELETE,
+};
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetForegroundWindow, GetWindowThreadProcessId, SetForegroundWindow,
+};
 
 /// Information about a worker thread.
 struct WorkerData {
@@ -238,6 +244,24 @@ fn apply_suggestion_job(automation: &UIAutomation, mut arguments: Vec<JobArgumen
         }
     };
 
+    // Prefer selecting the misspelled range and typing the fix, the way a person would. Unlike
+    // replacing the whole value, this works in Chrome and Electron editors (which often lack a
+    // writable value pattern), keeps formatting, and leaves the change on the app's undo stack.
+    match apply_suggestion_by_typing(
+        &element,
+        request.window,
+        &current_text,
+        request.span,
+        &request.suggestion,
+    ) {
+        Ok(()) => return JobResult::None,
+        Err(error) => {
+            eprintln!(
+                "Typing the Windows suggestion failed, falling back to setting the value: {error}"
+            );
+        }
+    }
+
     let Ok(value_pattern) = element.get_pattern::<UIValuePattern>() else {
         eprintln!(
             "Unable to apply Windows suggestion: the text element has no writable value pattern"
@@ -364,19 +388,8 @@ impl Drop for OwnedSafeArray {
     }
 }
 
-fn bounding_rectangles_for_span(
-    element: &UIElement,
-    start: i32,
-    len: i32,
-) -> Result<Vec<(f64, f64, f64, f64)>> {
-    if start < 0 || len < 0 {
-        return Err(Error::new(
-            uiautomation::errors::ERR_INVALID_ARG,
-            "start and len must be non-negative",
-        ));
-    }
-
-    let pattern: UITextPattern = element.get_pattern()?;
+/// Returns the text range covering `len` characters starting at `start`.
+fn range_for_span(pattern: &UITextPattern, start: i32, len: i32) -> Result<UITextRange> {
     let range = pattern.get_document_range()?;
 
     range.move_endpoint_by_range(
@@ -394,6 +407,122 @@ fn bounding_rectangles_for_span(
     )?;
 
     range.move_endpoint_by_unit(TextPatternRangeEndpoint::End, TextUnit::Character, len)?;
+
+    Ok(range)
+}
+
+/// Selects the lint's text in the source control and types the suggestion over it.
+fn apply_suggestion_by_typing(
+    element: &UIElement,
+    window: isize,
+    current_text: &str,
+    span: Span<char>,
+    suggestion: &Suggestion,
+) -> std::result::Result<(), String> {
+    let chars: Vec<char> = current_text.chars().collect();
+    if span.end > chars.len() {
+        return Err("the lint span is outside the source text".into());
+    }
+
+    let (start, len, replacement) = match suggestion {
+        Suggestion::ReplaceWith(with) => (span.start, span.len(), with.iter().collect::<String>()),
+        Suggestion::InsertAfter(with) => (span.end, 0, with.iter().collect::<String>()),
+        Suggestion::Remove => (span.start, span.len(), String::new()),
+    };
+
+    let pattern: UITextPattern = element.get_pattern().map_err(|e| e.to_string())?;
+    let range = range_for_span(&pattern, start as i32, len as i32).map_err(|e| e.to_string())?;
+
+    // Apps count characters differently (some use UTF-16 units, some collapse line breaks), so
+    // make sure the range we are about to overwrite really holds the text we linted.
+    let expected: String = chars[start..start + len].iter().collect();
+    let found = range.get_text(-1).map_err(|e| e.to_string())?;
+    if normalize_line_breaks(&found) != normalize_line_breaks(&expected) {
+        return Err(format!(
+            "the selected range holds {found:?} instead of {expected:?}"
+        ));
+    }
+
+    unsafe {
+        let _ = SetForegroundWindow(HWND(window as *mut std::ffi::c_void));
+    }
+    let _ = element.set_focus();
+    range.select().map_err(|e| e.to_string())?;
+
+    if replacement.is_empty() {
+        send_virtual_key(VK_DELETE)
+    } else {
+        send_unicode_text(&replacement)
+    }
+}
+
+fn normalize_line_breaks(text: &str) -> String {
+    text.replace("\r\n", "\n").replace('\r', "\n")
+}
+
+/// Types `text` into the focused control as Unicode keystrokes, independent of keyboard layout.
+fn send_unicode_text(text: &str) -> std::result::Result<(), String> {
+    let mut inputs = Vec::with_capacity(text.len() * 4);
+    for unit in text.encode_utf16() {
+        for flags in [KEYEVENTF_UNICODE, KEYEVENTF_UNICODE | KEYEVENTF_KEYUP] {
+            inputs.push(INPUT {
+                r#type: INPUT_KEYBOARD,
+                Anonymous: INPUT_0 {
+                    ki: KEYBDINPUT {
+                        wVk: VIRTUAL_KEY(0),
+                        wScan: unit,
+                        dwFlags: flags,
+                        time: 0,
+                        dwExtraInfo: 0,
+                    },
+                },
+            });
+        }
+    }
+    send_inputs(&inputs)
+}
+
+fn send_virtual_key(key: VIRTUAL_KEY) -> std::result::Result<(), String> {
+    let inputs = [KEYBD_EVENT_FLAGS(0), KEYEVENTF_KEYUP].map(|flags| INPUT {
+        r#type: INPUT_KEYBOARD,
+        Anonymous: INPUT_0 {
+            ki: KEYBDINPUT {
+                wVk: key,
+                wScan: 0,
+                dwFlags: flags,
+                time: 0,
+                dwExtraInfo: 0,
+            },
+        },
+    });
+    send_inputs(&inputs)
+}
+
+fn send_inputs(inputs: &[INPUT]) -> std::result::Result<(), String> {
+    let sent = unsafe { SendInput(inputs, size_of::<INPUT>() as i32) };
+    if sent as usize != inputs.len() {
+        return Err(format!(
+            "only {sent} of {} keystrokes were delivered (the app may be running as administrator)",
+            inputs.len()
+        ));
+    }
+    Ok(())
+}
+
+fn bounding_rectangles_for_span(
+    element: &UIElement,
+    start: i32,
+    len: i32,
+) -> Result<Vec<(f64, f64, f64, f64)>> {
+    if start < 0 || len < 0 {
+        return Err(Error::new(
+            uiautomation::errors::ERR_INVALID_ARG,
+            "start and len must be non-negative",
+        ));
+    }
+
+    let pattern: UITextPattern = element.get_pattern()?;
+    let range = range_for_span(&pattern, start, len)?;
 
     let raw: &IUIAutomationTextRange = range.as_ref();
     let array = OwnedSafeArray(unsafe { raw.GetBoundingRectangles()? });
