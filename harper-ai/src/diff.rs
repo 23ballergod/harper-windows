@@ -207,7 +207,9 @@ pub fn compute_edits(original: &str, corrected: &str) -> Vec<Edit> {
         let span = Span::new(old_tokens[0].start, old_tokens[old_tokens.len() - 1].end);
         let original_text: String = original.chars().skip(span.start).take(span.len()).collect();
 
-        if normalize(&original_text) == replacement {
+        if normalize(&original_text) == replacement
+            || expands_contraction(&original_text, &replacement)
+        {
             continue;
         }
 
@@ -243,6 +245,58 @@ pub fn compute_edits(original: &str, corrected: &str) -> Vec<Edit> {
     }
 
     edits
+}
+
+const NOT_CONTRACTIONS: &[(&str, &str)] = &[
+    ("don't", "do not"),
+    ("doesn't", "does not"),
+    ("didn't", "did not"),
+    ("can't", "cannot"),
+    ("can't", "can not"),
+    ("won't", "will not"),
+    ("isn't", "is not"),
+    ("aren't", "are not"),
+    ("wasn't", "was not"),
+    ("weren't", "were not"),
+    ("haven't", "have not"),
+    ("hasn't", "has not"),
+    ("hadn't", "had not"),
+    ("wouldn't", "would not"),
+    ("shouldn't", "should not"),
+    ("couldn't", "could not"),
+];
+
+const CONTRACTION_SUFFIXES: &[(&str, &[&str])] = &[
+    ("'s", &["is", "has"]),
+    ("'re", &["are"]),
+    ("'ve", &["have"]),
+    ("'ll", &["will"]),
+    ("'d", &["would", "had"]),
+    ("'m", &["am"]),
+];
+
+/// True when the model only spelled out a contraction the writer used on purpose ("He's" → "He
+/// is"). That changes the writer's tone without fixing anything.
+fn expands_contraction(original: &str, replacement: &str) -> bool {
+    let original = normalize(original).to_lowercase();
+    let replacement = replacement.to_lowercase();
+    let original = original.trim();
+    let replacement = replacement.trim();
+
+    if NOT_CONTRACTIONS
+        .iter()
+        .any(|(short, long)| original == *short && replacement == *long)
+    {
+        return true;
+    }
+
+    CONTRACTION_SUFFIXES.iter().any(|(suffix, expansions)| {
+        original.strip_suffix(suffix).is_some_and(|stem| {
+            expansions
+                .iter()
+                .any(|word| replacement == format!("{stem} {word}"))
+        })
+    })
 }
 
 fn classify(edit: &Edit) -> LintKind {
@@ -371,6 +425,17 @@ mod tests {
     #[test]
     fn smart_quotes_are_not_suggestions() {
         assert!(compute_edits("It's my friend's car.", "It’s my friend’s car.").is_empty());
+    }
+
+    #[test]
+    fn expanded_contractions_are_not_suggestions() {
+        assert!(
+            compute_edits("He's a member of the club.", "He is a member of the club.").is_empty()
+        );
+        assert!(compute_edits("I don't know why.", "I do not know why.").is_empty());
+        let edits = compute_edits("He's a memeber of the club.", "He is a member of the club.");
+        assert_eq!(edits.len(), 1);
+        assert_eq!(edits[0].replacement, "member");
     }
 
     #[test]

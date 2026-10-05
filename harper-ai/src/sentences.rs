@@ -8,7 +8,7 @@ use harper_core::Span;
 /// Common abbreviations that end in a period without ending the sentence.
 const ABBREVIATIONS: &[&str] = &[
     "mr", "mrs", "ms", "dr", "prof", "sr", "jr", "st", "vs", "etc", "e.g", "i.e", "inc", "ltd",
-    "co", "no", "fig", "approx", "dept", "est", "mt", "u.s",
+    "co", "no", "fig", "approx", "dept", "est", "mt", "u.s", "a.m", "p.m", "u.k", "ph.d", "a.k.a",
 ];
 
 /// A sentence and its location (in characters) within the source text.
@@ -128,6 +128,14 @@ mod tests {
             let slice: String = text.chars().skip(s.span.start).take(s.span.len()).collect();
             assert_eq!(slice, s.text);
         }
+    }
+
+    #[test]
+    fn times_do_not_split() {
+        assert_eq!(
+            texts("I get up at 5 a.m. on a Saturday. Ugh."),
+            vec!["I get up at 5 a.m. on a Saturday.", "Ugh."]
+        );
     }
 
     #[test]

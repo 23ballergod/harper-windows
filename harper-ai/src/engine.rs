@@ -5,7 +5,6 @@ use std::path::Path;
 use crate::qwen2::ModelWeights;
 use candle_core::quantized::gguf_file;
 use candle_core::{Device, Tensor};
-use candle_transformers::generation::{LogitsProcessor, Sampling};
 use tokenizers::Tokenizer;
 
 /// Anything that can turn a sentence into its corrected form.
@@ -17,8 +16,8 @@ pub trait Corrector: Send {
 
 const SYSTEM_PROMPT: &str = "You are a meticulous copy editor. Fix grammar, spelling, \
 punctuation, capitalization, and word-choice mistakes in the user's text. Make the fewest \
-changes possible. Keep the author's meaning, tone, wording, and style. Do not \
-rephrase sentences that are already correct, do not add explanations, and do not wrap the \
+changes possible. Keep the author's meaning, tone, wording, and style, including \
+contractions, slang, and casual phrasing. Do not rephrase sentences that are already correct, do not add explanations, and do not wrap the \
 answer in quotes. Reply with only the corrected text.";
 
 /// Few-shot examples teach a small model the expected output format far more reliably than
@@ -29,6 +28,10 @@ const EXAMPLES: &[(&str, &str)] = &[
         "He and I go to the library every weekend",
     ),
     ("The weather is nice today.", "The weather is nice today."),
+    (
+        "i dont think its gonna work tbh",
+        "I don't think it's gonna work tbh",
+    ),
     (
         "Their are alot of reasons why I could of done better.",
         "There are a lot of reasons why I could have done better.",
@@ -110,47 +113,132 @@ impl QwenCorrector {
     }
 }
 
+/// How many tokens of the user's own sentence to propose at once.
+const DRAFT_LEN: usize = 10;
+
+/// Proposes the tokens that follow the generated text in the original sentence.
+///
+/// A correction mostly repeats the input, so the next tokens can usually be predicted by finding
+/// where the output currently is in the input ("prompt lookup decoding"). The model then checks the
+/// whole guess in one pass, which is much faster than producing one token at a time.
+fn draft_from_source(source: &[u32], generated: &[u32], max: usize) -> Vec<u32> {
+    if generated.is_empty() {
+        return source.iter().take(max).copied().collect();
+    }
+    for n in (1..=3usize).rev() {
+        if generated.len() < n {
+            continue;
+        }
+        let tail = &generated[generated.len() - n..];
+        // Prefer the latest match: corrections move forward through the sentence.
+        if let Some(pos) = source.windows(n).rposition(|w| w == tail) {
+            let from = pos + n;
+            if from < source.len() {
+                return source[from..].iter().take(max).copied().collect();
+            }
+        }
+    }
+    Vec::new()
+}
+
+impl QwenCorrector {
+    fn argmax_rows(logits: &Tensor) -> Result<Vec<u32>, String> {
+        logits
+            .argmax(candle_core::D::Minus1)
+            .and_then(|t| t.to_vec1::<u32>())
+            .map_err(|e| e.to_string())
+    }
+}
+
 impl Corrector for QwenCorrector {
     fn correct(&mut self, sentence: &str) -> Result<String, String> {
         let prompt_tokens = self.encode(&Self::suffix(sentence))?;
-        let input_len = self.encode(sentence).map(|t| t.len()).unwrap_or(64);
-        let max_new = input_len * 3 / 2 + 16;
+        let source = self.encode(sentence)?;
+        let max_new = source.len() * 3 / 2 + 16;
 
         self.model.restore_kv_cache(&self.prefix_cache);
-        // Greedy decoding: corrections should be deterministic.
-        let mut sampler = LogitsProcessor::from_sampling(0, Sampling::ArgMax);
+        let mut pos = self.prefix_len;
 
+        // Greedy decoding: corrections should be deterministic.
         let input = Tensor::new(prompt_tokens.as_slice(), &self.device)
             .and_then(|t| t.unsqueeze(0))
             .map_err(|e| e.to_string())?;
         let logits = self
             .model
-            .forward(&input, self.prefix_len)
+            .forward(&input, pos)
             .and_then(|l| l.squeeze(0))
             .map_err(|e| e.to_string())?;
-        let mut next = sampler.sample(&logits).map_err(|e| e.to_string())?;
+        pos += prompt_tokens.len();
+        let mut next = logits
+            .argmax(candle_core::D::Minus1)
+            .and_then(|t| t.to_scalar::<u32>())
+            .map_err(|e| e.to_string())?;
 
-        let mut output = Vec::new();
-        for index in 0..max_new {
-            if self.eos_tokens.contains(&next) {
-                break;
-            }
+        let mut output: Vec<u32> = Vec::new();
+        while output.len() < max_new && !self.eos_tokens.contains(&next) {
             output.push(next);
 
-            let input = Tensor::new(&[next], &self.device)
+            let draft = draft_from_source(&source, &output, DRAFT_LEN);
+            let mut input_ids = vec![next];
+            input_ids.extend_from_slice(&draft);
+
+            let input = Tensor::new(input_ids.as_slice(), &self.device)
                 .and_then(|t| t.unsqueeze(0))
                 .map_err(|e| e.to_string())?;
             let logits = self
                 .model
-                .forward(&input, self.prefix_len + prompt_tokens.len() + index)
-                .and_then(|l| l.squeeze(0))
+                .forward_all(&input, pos)
                 .map_err(|e| e.to_string())?;
-            next = sampler.sample(&logits).map_err(|e| e.to_string())?;
+            let predicted = Self::argmax_rows(&logits)?;
+
+            // predicted[i] is the model's choice after input_ids[..=i]. Accept draft tokens for
+            // as long as they match what the model would have produced anyway.
+            let mut accepted = 0;
+            while accepted < draft.len()
+                && predicted[accepted] == draft[accepted]
+                && !self.eos_tokens.contains(&draft[accepted])
+                && output.len() < max_new
+            {
+                output.push(draft[accepted]);
+                accepted += 1;
+            }
+
+            pos += 1 + accepted;
+            if accepted < draft.len() {
+                self.model
+                    .truncate_kv_cache(pos)
+                    .map_err(|e| e.to_string())?;
+            }
+            next = predicted[accepted];
         }
 
         self.tokenizer
             .decode(&output, true)
             .map(|s| s.trim().to_string())
             .map_err(|e| e.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::draft_from_source;
+
+    #[test]
+    fn drafts_start_of_sentence_first() {
+        assert_eq!(draft_from_source(&[1, 2, 3, 4], &[], 2), vec![1, 2]);
+    }
+
+    #[test]
+    fn drafts_continue_after_matching_tail() {
+        // Output so far "1 9 3" after a substitution; continue after "3" in the source.
+        assert_eq!(
+            draft_from_source(&[1, 2, 3, 4, 5], &[1, 9, 3], 5),
+            vec![4, 5]
+        );
+    }
+
+    #[test]
+    fn no_draft_when_tail_is_unknown() {
+        assert!(draft_from_source(&[1, 2, 3], &[7, 8], 5).is_empty());
     }
 }

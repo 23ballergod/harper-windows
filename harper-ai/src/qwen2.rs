@@ -330,7 +330,34 @@ impl ModelWeights {
         }
     }
 
+    /// Drops cached attention past `len` tokens, undoing draft tokens that were rejected.
+    pub fn truncate_kv_cache(&mut self, len: usize) -> Result<()> {
+        for layer in self.layers.iter_mut() {
+            if let Some((k, v)) = &layer.kv_cache {
+                let keep = len.min(k.dim(2)?);
+                layer.kv_cache = Some((k.narrow(2, 0, keep)?, v.narrow(2, 0, keep)?));
+            }
+        }
+        Ok(())
+    }
+
+    /// Like [`Self::forward`], but returns logits for every input position, shaped
+    /// `(seq_len, vocab)`. Used to verify several draft tokens in one pass.
+    pub fn forward_all(&mut self, x: &Tensor, index_pos: usize) -> Result<Tensor> {
+        let hidden = self.hidden_states(x, index_pos)?;
+        let _enter = self.span_output.enter();
+        self.output.forward(&hidden.squeeze(0)?)
+    }
+
     pub fn forward(&mut self, x: &Tensor, index_pos: usize) -> Result<Tensor> {
+        let (_b_sz, seq_len) = x.dims2()?;
+        let x = self.hidden_states(x, index_pos)?;
+        let x = x.i((.., seq_len - 1, ..))?;
+        let _enter = self.span_output.enter();
+        self.output.forward(&x)
+    }
+
+    fn hidden_states(&mut self, x: &Tensor, index_pos: usize) -> Result<Tensor> {
         let (_b_sz, seq_len) = x.dims2()?;
         let mask = if seq_len == 1 {
             None
@@ -354,9 +381,6 @@ impl ModelWeights {
             let x = (x + residual)?;
             layer_in = x
         }
-        let x = self.norm.forward(&layer_in)?;
-        let x = x.i((.., seq_len - 1, ..))?;
-        let _enter = self.span_output.enter();
-        self.output.forward(&x)
+        self.norm.forward(&layer_in)
     }
 }
