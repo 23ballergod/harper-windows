@@ -1,11 +1,6 @@
 <script lang="ts">
-import { openUrl } from '@tauri-apps/plugin-opener';
-import { Button } from 'components';
 import { onMount } from 'svelte';
 import { Client } from '$lib/client';
-
-const SOURCE_URL = 'https://github.com/Automattic/harper';
-const ISSUE_URL = 'https://github.com/Automattic/harper/issues/new/choose';
 
 let currentVersion = '';
 
@@ -17,32 +12,66 @@ async function loadCurrentVersion() {
 	try {
 		currentVersion = await Client.getCurrentVersion();
 	} catch (error) {
-		console.error('Unable to load Harper Desktop version.', error);
+		console.error('Unable to load the app version.', error);
 	}
 }
 </script>
 
 <section class="about">
-        <div class="about-mark">H</div>
-        <h1>Harper for Mac</h1>
+        <div class="about-mark">S</div>
+        <h1>Shah Re-Writer</h1>
         <p class="muted">Version {currentVersion || 'unknown'}</p>
         <p>
-          An open-source grammar checker that runs entirely on your device. No accounts, no
-          telemetry, no cloud.
+          A grammar checker for Windows that works in every app and runs entirely on your PC. No
+          accounts, no subscriptions, and your writing never leaves your computer.
         </p>
-        <div class="actions-row center">
-          <Button
-            unstyled
-            class="button"
-            type="button"
-            on:click={() => void openUrl('https://github.com/Automattic/harper/releases/latest')}
-          >Release notes</Button>
-          <Button unstyled class="button" type="button" on:click={() => void openUrl(SOURCE_URL)}>Source on GitHub</Button>
-          <Button unstyled class="button" type="button" on:click={() => void openUrl(ISSUE_URL)}>Report an issue</Button>
-        </div>
-        <div class="about-footer">
-          Harper is free software released under the Apache 2.0 license.
-          <br />
-          Copyright 2026 The Harper Contributors.
-        </div>
+        <details class="licenses">
+          <summary>Open-source licenses</summary>
+          <p>
+            Shah Re-Writer is built with open-source software. Their licenses require that we
+            credit them here.
+          </p>
+          <ul>
+            <li>
+              <strong>Harper</strong>, the rule-based grammar engine. Copyright The Harper
+              Contributors and Automattic. Apache License 2.0.
+            </li>
+            <li>
+              <strong>candle</strong>, used to run the AI model. Copyright Hugging Face. MIT or
+              Apache License 2.0.
+            </li>
+            <li>
+              <strong>Qwen2.5</strong> AI models, downloaded on request. Copyright Alibaba Cloud.
+              Apache License 2.0.
+            </li>
+            <li>
+              <strong>Tauri</strong>, <strong>egui</strong>, <strong>wgpu</strong> and other
+              libraries. MIT or Apache License 2.0.
+            </li>
+          </ul>
+          <p class="muted">
+            The full Apache License 2.0 text is at apache.org/licenses/LICENSE-2.0 and ships in
+            the LICENSE file of the source code.
+          </p>
+        </details>
       </section>
+
+<style>
+.licenses {
+	margin-top: 24px;
+	text-align: left;
+	max-width: 520px;
+	font-size: 13px;
+}
+.licenses summary {
+	cursor: pointer;
+	font-weight: 600;
+	text-align: center;
+}
+.licenses ul {
+	padding-left: 18px;
+}
+.licenses li {
+	margin: 6px 0;
+}
+</style>

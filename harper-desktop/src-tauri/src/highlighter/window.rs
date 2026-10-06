@@ -1,9 +1,9 @@
 use std::num::NonZeroU32;
 use std::sync::Arc;
 
-use egui_wgpu::wgpu::PresentMode;
+use egui_wgpu::wgpu::{self, PresentMode};
 use egui_wgpu::winit::Painter;
-use egui_wgpu::{RendererOptions, WgpuConfiguration, WgpuSetup};
+use egui_wgpu::{RendererOptions, WgpuConfiguration, WgpuSetup, WgpuSetupCreateNew};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event::WindowEvent;
 use winit::event_loop::ActiveEventLoop;
@@ -36,7 +36,10 @@ impl Window {
         let window = Arc::new(
             event_loop.create_window(
                 WinitWindow::default_attributes()
-                    .with_title("Harper")
+                    .with_title(crate::branding::APP_NAME)
+                    // Stay hidden until we know the GPU can draw a see-through window. An opaque
+                    // full-screen overlay would black out the user's screen.
+                    .with_visible(false)
                     .with_inner_size(size)
                     .with_position(position)
                     .with_resizable(false)
@@ -62,11 +65,16 @@ impl Window {
             None,
         );
 
+        let setup = overlay_wgpu_setup(event_loop);
+        if !supports_transparency(&setup, window.clone()).await {
+            return Err(Error::NoTransparency);
+        }
+
         let mut painter = Painter::new(
             context,
             WgpuConfiguration {
                 present_mode: PresentMode::Fifo,
-                wgpu_setup: WgpuSetup::from_display_handle(event_loop.owned_display_handle()),
+                wgpu_setup: WgpuSetup::CreateNew(setup),
                 ..Default::default()
             },
             true,
@@ -76,6 +84,7 @@ impl Window {
         painter
             .set_window(viewport_id, Some(window.clone()))
             .await?;
+        window.set_visible(true);
         window.request_redraw();
 
         Ok(Self {
@@ -142,4 +151,83 @@ impl Window {
             Vec::new(),
         );
     }
+}
+
+/// Picks a GPU setup that can present a see-through window.
+///
+/// On Windows, wgpu's default DX12 swapchain is created straight from the window handle, and that
+/// kind of swapchain is always opaque: the overlay would cover every monitor in black. A swapchain
+/// made from a DirectComposition visual supports per-pixel transparency, and Vulkan or OpenGL
+/// surfaces on Windows do not, so DX12 with a composition visual is the only option there. The
+/// overlay is cheap to draw, so the integrated GPU is preferred to save battery.
+fn overlay_wgpu_setup(event_loop: &ActiveEventLoop) -> WgpuSetupCreateNew {
+    let mut setup = WgpuSetupCreateNew::from_display_handle(event_loop.owned_display_handle());
+    setup.power_preference = wgpu::PowerPreference::LowPower;
+
+    #[cfg(target_os = "windows")]
+    {
+        setup.instance_descriptor.backends = wgpu::Backends::DX12;
+        setup
+            .instance_descriptor
+            .backend_options
+            .dx12
+            .presentation_system = wgpu::Dx12SwapchainKind::DxgiFromVisual;
+    }
+
+    setup
+}
+
+/// Checks, before anything is shown, that the window's surface can blend with the desktop.
+///
+/// Uses a throwaway wgpu instance so the real renderer is untouched; the probe surface is dropped
+/// before the renderer creates its own.
+async fn supports_transparency(setup: &WgpuSetupCreateNew, window: Arc<WinitWindow>) -> bool {
+    let descriptor = &setup.instance_descriptor;
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: descriptor.backends,
+        flags: descriptor.flags,
+        backend_options: descriptor.backend_options.clone(),
+        memory_budget_thresholds: descriptor.memory_budget_thresholds,
+        display: None,
+    });
+
+    let surface = match instance.create_surface(window) {
+        Ok(surface) => surface,
+        Err(error) => {
+            eprintln!("Overlay disabled: could not create a GPU surface: {error}");
+            return false;
+        }
+    };
+
+    let adapter = match instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: setup.power_preference,
+            force_fallback_adapter: false,
+            compatible_surface: Some(&surface),
+        })
+        .await
+    {
+        Ok(adapter) => adapter,
+        Err(error) => {
+            eprintln!("Overlay disabled: no GPU adapter can draw the overlay: {error}");
+            return false;
+        }
+    };
+
+    let alpha_modes = surface.get_capabilities(&adapter).alpha_modes;
+    let transparent = alpha_modes.iter().any(|mode| {
+        matches!(
+            mode,
+            wgpu::CompositeAlphaMode::PreMultiplied | wgpu::CompositeAlphaMode::PostMultiplied
+        )
+    });
+
+    if !transparent {
+        eprintln!(
+            "Overlay disabled: the {:?} adapter only offers {alpha_modes:?}, which would draw an opaque window",
+            adapter.get_info().backend
+        );
+    }
+
+    transparent
 }

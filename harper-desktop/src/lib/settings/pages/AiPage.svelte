@@ -91,7 +91,7 @@ $: selected = models.find((m) => m.id === settings.model);
     <div class="rows">
       <SettingRow top>
         <strong>Use AI suggestions</strong>
-        <p>Suggestions appear a moment after you finish a sentence, next to Harper's instant checks.</p>
+        <p>Suggestions appear a moment after you finish a sentence, next to Shah Re-Writer's instant checks.</p>
         <Checkbox
           slot="control"
           appearance="settings"

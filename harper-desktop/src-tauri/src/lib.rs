@@ -32,6 +32,7 @@ use tokio::{
 };
 
 mod ai;
+pub(crate) mod branding;
 pub mod color;
 mod commands;
 pub mod communication;

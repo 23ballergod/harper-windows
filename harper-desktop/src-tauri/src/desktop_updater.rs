@@ -44,7 +44,7 @@ impl UpdateResult {
         if let Some(latest_version) = latest_version {
             if self.latest_version.as_ref() != Some(&latest_version) {
                 self.message = format!(
-                    "Update installed. Restart Harper to finish before installing version {latest_version}."
+                    "Update installed. Restart Shah Re-Writer to finish before installing version {latest_version}."
                 );
             }
             self.latest_version = Some(latest_version);
@@ -193,7 +193,7 @@ async fn check_and_install<R: Runtime>(
             status: UpdateStatus::UpToDate,
             current_version: Some(current_version),
             latest_version: None,
-            message: "Download new versions of Harper for Windows from its GitHub releases page."
+            message: "Download new versions of Shah Re-Writer from its GitHub releases page."
                 .into(),
             error: None,
         });
@@ -219,7 +219,7 @@ async fn check_and_install<R: Runtime>(
             status: UpdateStatus::UpToDate,
             current_version: Some(current_version),
             latest_version: None,
-            message: "Harper is up to date.".into(),
+            message: "Shah Re-Writer is up to date.".into(),
             error: None,
         });
     };
@@ -233,7 +233,7 @@ async fn check_and_install<R: Runtime>(
         status: UpdateStatus::Updated,
         current_version: Some(current_version),
         latest_version: Some(normalize_version(&update.version)),
-        message: "Update installed. Restart Harper to finish.".into(),
+        message: "Update installed. Restart Shah Re-Writer to finish.".into(),
         error: None,
     })
 }
@@ -260,7 +260,7 @@ mod tests {
             status: UpdateStatus::Updated,
             current_version: Some("2.11.0".into()),
             latest_version: Some("2.12.0".into()),
-            message: "Update installed. Restart Harper to finish.".into(),
+            message: "Update installed. Restart Shah Re-Writer to finish.".into(),
             error: None,
         }
     }
@@ -410,7 +410,7 @@ mod tests {
                     status: UpdateStatus::UpToDate,
                     current_version: Some("2.11.0".into()),
                     latest_version: None,
-                    message: "Harper is up to date.".into(),
+                    message: "Shah Re-Writer is up to date.".into(),
                     error: None,
                 }))
             })

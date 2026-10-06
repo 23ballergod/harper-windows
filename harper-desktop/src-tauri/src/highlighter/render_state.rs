@@ -312,7 +312,7 @@ fn render_popover_header(ui: &mut egui::Ui, lint: &Lint, action: &mut Option<Lin
                     if icon_button(ui, Glyph::Close, "Close this suggestion popup.").clicked() {
                         *action = Some(LintCardAction::Close);
                     }
-                    icon_button(ui, Glyph::Settings, "Open Harper settings.");
+                    icon_button(ui, Glyph::Settings, "Open settings.");
                     if icon_button(ui, Glyph::Disable, "Disable this rule.").clicked() {
                         *action = Some(LintCardAction::DisableRule);
                     }
