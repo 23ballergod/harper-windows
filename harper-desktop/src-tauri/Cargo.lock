@@ -3983,7 +3983,7 @@ dependencies = [
 
 [[package]]
 name = "harper-desktop"
-version = "2.12.0"
+version = "0.1.0"
 dependencies = [
  "accessibility",
  "accessibility-sys",
@@ -4000,6 +4000,7 @@ dependencies = [
  "harper-ai",
  "harper-core",
  "harper-dictionary-wordlist",
+ "hex",
  "is-macro",
  "objc2 0.6.4",
  "objc2-app-kit 0.3.2",
@@ -4009,6 +4010,7 @@ dependencies = [
  "send_wrapper",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",

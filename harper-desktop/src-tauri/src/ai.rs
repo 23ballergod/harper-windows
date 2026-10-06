@@ -10,6 +10,7 @@ use std::time::{Duration, Instant};
 use harper_ai::{AI_RULE_NAME, AiChecker, AiModel, CheckerStatus, QwenCorrector};
 use harper_core::linting::{FlatConfig, Lint};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
@@ -51,7 +52,7 @@ impl AiSettings {
 
 /// Where downloaded model files are stored.
 pub fn models_dir() -> Option<PathBuf> {
-    dirs::data_local_dir().map(|p| p.join("harper-windows").join("models"))
+    dirs::data_local_dir().map(|p| p.join(crate::branding::DATA_FOLDER).join("models"))
 }
 
 /// Download progress for one model, reported to the settings page.
@@ -83,7 +84,7 @@ impl AiDownloads {
             .unwrap_or_default();
         state.downloaded = downloaded && !state.downloading;
         if state.total_bytes == 0 {
-            state.total_bytes = model.files().iter().map(|f| f.approx_bytes).sum();
+            state.total_bytes = model.files().iter().map(|f| f.bytes).sum();
         }
         state
     }
@@ -104,7 +105,7 @@ impl AiDownloads {
             }
             *state = ModelState {
                 downloading: true,
-                total_bytes: model.files().iter().map(|f| f.approx_bytes).sum(),
+                total_bytes: model.files().iter().map(|f| f.bytes).sum(),
                 ..Default::default()
             };
         }
@@ -125,14 +126,16 @@ impl AiDownloads {
 
         let client = reqwest::Client::builder()
             .connect_timeout(Duration::from_secs(30))
+            // Without this a stalled connection would leave the download stuck forever.
+            .read_timeout(Duration::from_secs(60))
             .build()
             .map_err(|e| e.to_string())?;
 
         let mut done_before: u64 = 0;
         for file in model.files() {
             let target = dir.join(file.file_name);
-            if let Ok(meta) = tokio::fs::metadata(&target).await {
-                done_before += meta.len();
+            if file.is_complete(&target) {
+                done_before += file.bytes;
                 self.update(model, |s| s.downloaded_bytes = done_before);
                 continue;
             }
@@ -149,6 +152,7 @@ impl AiDownloads {
                 .await
                 .map_err(|e| e.to_string())?;
             let mut written: u64 = 0;
+            let mut hasher = Sha256::new();
 
             use tokio::io::AsyncWriteExt;
             while let Some(chunk) = response
@@ -157,11 +161,21 @@ impl AiDownloads {
                 .map_err(|e| format!("Download interrupted: {e}"))?
             {
                 out.write_all(&chunk).await.map_err(|e| e.to_string())?;
+                hasher.update(&chunk);
                 written += chunk.len() as u64;
                 self.update(model, |s| s.downloaded_bytes = done_before + written);
             }
             out.flush().await.map_err(|e| e.to_string())?;
             drop(out);
+
+            let digest = hex::encode(hasher.finalize());
+            if written != file.bytes || digest != file.sha256 {
+                let _ = tokio::fs::remove_file(&part).await;
+                return Err(format!(
+                    "The download of {} was incomplete or damaged. Please try again.",
+                    file.file_name
+                ));
+            }
 
             tokio::fs::rename(&part, &target)
                 .await

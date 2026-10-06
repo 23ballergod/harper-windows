@@ -33,23 +33,26 @@ impl Window {
     ) -> Result<Self, Error> {
         let position = monitor.position();
         let size = monitor.size();
-        let window = Arc::new(
-            event_loop.create_window(
-                WinitWindow::default_attributes()
-                    .with_title(crate::branding::APP_NAME)
-                    // Stay hidden until we know the GPU can draw a see-through window. An opaque
-                    // full-screen overlay would black out the user's screen.
-                    .with_visible(false)
-                    .with_inner_size(size)
-                    .with_position(position)
-                    .with_resizable(false)
-                    .with_enabled_buttons(WindowButtons::empty())
-                    .with_decorations(false)
-                    .with_transparent(true)
-                    .with_window_level(WindowLevel::AlwaysOnTop)
-                    .with_active(false),
-            )?,
-        );
+        let attributes = WinitWindow::default_attributes()
+            .with_title(crate::branding::APP_NAME)
+            // Stay hidden until we know the GPU can draw a see-through window. An opaque
+            // full-screen overlay would black out the user's screen.
+            .with_visible(false)
+            .with_inner_size(size)
+            .with_position(position)
+            .with_resizable(false)
+            .with_enabled_buttons(WindowButtons::empty())
+            .with_decorations(false)
+            .with_transparent(true)
+            .with_window_level(WindowLevel::AlwaysOnTop)
+            .with_active(false);
+        // Keep the overlay out of the taskbar and Alt+Tab.
+        #[cfg(target_os = "windows")]
+        let attributes = {
+            use winit::platform::windows::WindowAttributesExtWindows;
+            attributes.with_skip_taskbar(true)
+        };
+        let window = Arc::new(event_loop.create_window(attributes)?);
 
         window.set_outer_position(PhysicalPosition::new(position.x, position.y));
         let _ = window.request_inner_size(PhysicalSize::new(size.width, size.height));

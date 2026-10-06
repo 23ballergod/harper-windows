@@ -173,7 +173,7 @@ impl Config {
 
     /// Uses its own folder so settings never collide with an upstream Harper Desktop install.
     pub(crate) fn folder_path() -> Option<PathBuf> {
-        dirs::config_dir().map(|path| path.join("harper-windows"))
+        dirs::config_dir().map(|path| path.join(crate::branding::DATA_FOLDER))
     }
 
     #[allow(dead_code)]
@@ -426,7 +426,7 @@ mod tests {
         assert_eq!(path.file_name().unwrap(), "config.json");
         assert_eq!(
             path.parent().unwrap().file_name().unwrap(),
-            "harper-windows"
+            crate::branding::DATA_FOLDER
         );
     }
 
@@ -445,7 +445,7 @@ mod tests {
         assert_eq!(path.file_name().unwrap(), "dictionary.txt");
         assert_eq!(
             path.parent().unwrap().file_name().unwrap(),
-            "harper-windows"
+            crate::branding::DATA_FOLDER
         );
     }
 }
