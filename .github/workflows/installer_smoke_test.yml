@@ -1,0 +1,54 @@
+name: Installer smoke test
+
+# Installs, launches and uninstalls a Windows installer built by the "Windows installer"
+# workflow on a real Windows machine, and commits the report and screenshots to smoke-results/.
+
+on:
+  push:
+    branches: ["claude/project-thread-d8o3th"]
+    paths:
+      - ".github/workflows/installer_smoke_test.yml"
+      - ".github/smoke/**"
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: "Windows installer workflow run to test"
+        required: true
+
+env:
+  # The run whose installer is tested on push.
+  INSTALLER_RUN_ID: ${{ inputs.run-id || '37257546353' }}
+
+jobs:
+  smoke:
+    name: Install, launch and uninstall on Windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: harper-windows-installer
+          path: installer
+          run-id: ${{ env.INSTALLER_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem installer -Recurse -Filter *-setup.exe | Select-Object -First 1
+          ./.github/smoke/installer-smoke.ps1 -Installer $setup.FullName -Out smoke-results
+          "Installer from run $env:INSTALLER_RUN_ID" | Add-Content smoke-results/report.md
+          Get-Content smoke-results/report.md | Add-Content $env:GITHUB_STEP_SUMMARY
+      - name: Save results to the branch
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f smoke-results
+          git commit -m "Installer smoke test results for run $INSTALLER_RUN_ID [skip ci]" || exit 0
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
