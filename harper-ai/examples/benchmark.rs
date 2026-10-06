@@ -1,8 +1,8 @@
 //! Scores the app's real checking pipeline on `tests/data/tricky.jsonl`: the mistakes Grammarly is
 //! known for catching, plus already-correct sentences that should be left alone.
 //!
-//! Runs three systems: Harper's rules alone, the AI model alone, and both (Harper first, then the
-//! AI, as the app does). A sentence counts as fixed when accepting every suggestion produces one of
+//! Runs Harper's rules alone, the AI model alone, and both the way the app combines them: each
+//! checks the original text and only one suggestion is kept where they overlap. A sentence counts as fixed when accepting every suggestion produces one of
 //! the reference answers exactly.
 //!
 //! Usage: `cargo run -p harper-ai --release --example benchmark -- <model dir> [Fast|Accurate] [limit]`
@@ -103,19 +103,63 @@ fn apply_suggestion(chars: &mut Vec<char>, start: usize, end: usize, suggestion:
     }
 }
 
-/// Runs the model sentence by sentence and applies only the small edits the app would show.
-fn apply_ai(corrector: &mut QwenCorrector, text: &str) -> String {
-    let mut chars: Vec<char> = text.chars().collect();
-    for sentence in split_sentences(text).into_iter().rev() {
+/// A replacement of `chars[start..end]`, in characters of the original text.
+type CharEdit = (usize, usize, Vec<char>);
+
+/// Harper's first suggestion for every lint on the original text, as the app shows them.
+fn harper_edits(linter: &mut LintGroup, text: &str) -> Vec<CharEdit> {
+    let chars: Vec<char> = text.chars().collect();
+    let doc = Document::new_plain_english_curated(text);
+    linter
+        .organized_lints(&doc)
+        .into_values()
+        .flatten()
+        .filter(|l| !l.suggestions.is_empty())
+        .filter(|l| is_probably_helpful(&chars, l))
+        .map(|l| match &l.suggestions[0] {
+            Suggestion::ReplaceWith(with) => (l.span.start, l.span.end, with.clone()),
+            Suggestion::InsertAfter(with) => (l.span.end, l.span.end, with.clone()),
+            Suggestion::Remove => (l.span.start, l.span.end, Vec::new()),
+        })
+        .collect()
+}
+
+/// Runs the model sentence by sentence on the original text and keeps only the small edits the
+/// app would show.
+fn ai_edits(corrector: &mut QwenCorrector, text: &str) -> Vec<CharEdit> {
+    let mut out = Vec::new();
+    for sentence in split_sentences(text) {
         let Ok(corrected) = corrector.correct(&sentence.text) else {
             continue;
         };
-        let edits = compute_edits(&sentence.text, &corrected);
-        for edit in edits.iter().rev() {
-            let start = sentence.span.start + edit.span.start;
-            let end = sentence.span.start + edit.span.end;
-            chars.splice(start..end, edit.replacement.chars());
+        for edit in compute_edits(&sentence.text, &corrected) {
+            out.push((
+                sentence.span.start + edit.span.start,
+                sentence.span.start + edit.span.end,
+                edit.replacement.chars().collect(),
+            ));
         }
+    }
+    out
+}
+
+fn overlaps(a: &CharEdit, b: &CharEdit) -> bool {
+    a.0 < b.1.max(b.0 + 1) && b.0 < a.1.max(a.0 + 1)
+}
+
+/// Applies every `first` edit, then each `second` edit that doesn't overlap one already taken.
+/// This is how the app merges the two checkers: the first one wins where both flag the same words.
+fn merge_and_apply(text: &str, first: &[CharEdit], second: &[CharEdit]) -> String {
+    let mut taken: Vec<&CharEdit> = Vec::new();
+    for edit in first.iter().chain(second) {
+        if !taken.iter().any(|t| overlaps(t, edit)) {
+            taken.push(edit);
+        }
+    }
+    taken.sort_by_key(|e| (e.0, e.1));
+    let mut chars: Vec<char> = text.chars().collect();
+    for (start, end, with) in taken.into_iter().rev() {
+        chars.splice(*start..*end, with.iter().copied());
     }
     chars.into_iter().collect()
 }
@@ -186,23 +230,29 @@ fn main() {
     let mut harper = Score::default();
     let mut ai = Score::default();
     let mut both = Score::default();
+    let mut ai_first = Score::default();
     let mut misses = Vec::new();
 
     for case in &cases {
         let start = Instant::now();
         let h = apply_harper(&mut linter, &case.source);
+        harper.record(case, &h, start.elapsed());
+
+        let start = Instant::now();
+        let h_edits = harper_edits(&mut linter, &case.source);
         let harper_time = start.elapsed();
-        harper.record(case, &h, harper_time);
 
         let b = match corrector.as_mut() {
             Some(corrector) => {
                 let start = Instant::now();
-                let a = apply_ai(corrector, &case.source);
-                ai.record(case, &a, start.elapsed());
+                let a_edits = ai_edits(corrector, &case.source);
+                let ai_time = start.elapsed();
+                ai.record(case, &merge_and_apply(&case.source, &a_edits, &[]), ai_time);
 
-                let start = Instant::now();
-                let b = apply_ai(corrector, &h);
-                both.record(case, &b, harper_time + start.elapsed());
+                let b = merge_and_apply(&case.source, &h_edits, &a_edits);
+                both.record(case, &b, harper_time + ai_time);
+                let a = merge_and_apply(&case.source, &a_edits, &h_edits);
+                ai_first.record(case, &a, harper_time + ai_time);
                 b
             }
             None => h,
@@ -228,7 +278,8 @@ fn main() {
     println!("|---|---|---|---|");
     println!("{}", harper.row("Harper rules", cases.len()));
     println!("{}", ai.row("AI model", cases.len()));
-    println!("{}", both.row("Harper + AI (the app)", cases.len()));
+    println!("{}", both.row("Harper + AI (the app: Harper wins overlaps)", cases.len()));
+    println!("{}", ai_first.row("Harper + AI (AI wins overlaps)", cases.len()));
 
     println!("\n| Category | Harper | AI | Harper + AI |");
     println!("|---|---|---|---|");
