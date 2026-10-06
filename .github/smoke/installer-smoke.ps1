@@ -10,6 +10,7 @@ param(
 )
 
 $ErrorActionPreference = 'Continue'
+$problems = New-Object System.Collections.Generic.List[string]
 New-Item -ItemType Directory -Force $Out | Out-Null
 $report = Join-Path $Out 'report.md'
 Set-Content -Path $report -Value ''
@@ -69,7 +70,7 @@ function Shot([string] $name) {
         $g.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0, $bmp.Size)
     } catch {
         Log "- Screenshot ``$name`` failed: $_"
-        $g.Dispose(); $bmp.Dispose(); return
+        $g.Dispose(); $bmp.Dispose(); return -1
     }
     $g.Dispose()
     $bmp.Save((Join-Path $Out "$name.png"), [System.Drawing.Imaging.ImageFormat]::Png)
@@ -84,6 +85,7 @@ function Shot([string] $name) {
     }
     $bmp.Dispose()
     Log ("- Screenshot ``{0}.png``: {1}x{2}, average brightness {3:N0}/255, near-black {4:P0} of the screen" -f $name, $bounds.Width, $bounds.Height, ($sum / $n), ($dark / $n))
+    $dark / $n
 }
 
 function Pids([string] $dir) {
@@ -133,7 +135,7 @@ $vi = $inst.VersionInfo
 Log "- File: ``$($inst.Name)``, $('{0:N1}' -f ($inst.Length / 1MB)) MB"
 Log "- Properties: product '$($vi.ProductName)', description '$($vi.FileDescription)', company '$($vi.CompanyName)', copyright '$($vi.LegalCopyright)', version '$($vi.ProductVersion)'"
 Log "- Code signature: $((Get-AuthenticodeSignature $inst.FullName).Status)"
-Shot '0-desktop-before'
+$darkBefore = Shot '0-desktop-before'
 
 # --- Installer window (what a user sees first) ------------------------------------------------
 Log ""
@@ -142,7 +144,7 @@ $p = Start-Process $inst.FullName -PassThru
 Start-Sleep 8
 $set = New-Object 'System.Collections.Generic.HashSet[uint32]'; [void]$set.Add([uint32]$p.Id)
 ShowWindows $set 'installer'
-Shot '1-installer-window'
+[void](Shot '1-installer-window')
 Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
 Start-Sleep 2
 
@@ -155,7 +157,7 @@ Log "- Silent install exit code $($p.ExitCode) after $('{0:N0}' -f $sw.Elapsed.T
 $entry = UninstallEntries | Select-Object -First 1
 if (-not $entry) {
     Log "- FAIL: no entry in Installed apps after installing"
-    exit 0
+    exit 1
 }
 $uninstaller = ($entry.UninstallString -replace '"', '').Trim()
 $dir = Split-Path $uninstaller
@@ -178,7 +180,9 @@ Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and $_.Executa
     ForEach-Object { Log "- Running: pid $($_.ProcessId), $($_.CommandLine), $('{0:N0}' -f ($_.WorkingSetSize / 1MB)) MB RAM" }
 Log "- Main app still running after 30 s: $(-not $app.HasExited)$(if ($app.HasExited) { " (exit code $($app.ExitCode))" })"
 ShowWindows (Pids $dir) 'after launch'
-Shot '2-after-launch'
+$darkAfter = Shot '2-after-launch'
+if ($darkAfter -gt 0.5 -and $darkBefore -lt 0.5) { $problems.Add("the screen went black after launching the app ($('{0:P0}' -f $darkAfter) near-black)") }
+if ($app.HasExited) { $problems.Add("the app quit within 30 seconds of launching (exit code $($app.ExitCode))") }
 
 # --- Type a mistake into Notepad --------------------------------------------------------------
 Log ""
@@ -192,7 +196,9 @@ $shell.SendKeys('This is an test. Their going to the store. She go to school eve
 Start-Sleep 15
 Log "- Main app still running: $(-not $app.HasExited)"
 ShowWindows (Pids $dir) 'with Notepad focused'
-Shot '3-notepad-typed'
+$darkTyped = Shot '3-notepad-typed'
+if ($darkTyped -gt 0.5 -and $darkBefore -lt 0.5) { $problems.Add("the screen was black while typing in Notepad") }
+if ($app.HasExited) { $problems.Add("the app quit while typing in Notepad") }
 Get-Process -Name notepad -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # --- Leftover state before uninstalling --------------------------------------------------------
@@ -221,7 +227,7 @@ Start-Sleep 8
 $set = New-Object 'System.Collections.Generic.HashSet[uint32]'
 Get-Process | Where-Object { $_.Name -like 'Un_*' -or $_.Name -like 'Au_*' -or $_.Path -eq $uninstaller } | ForEach-Object { [void]$set.Add([uint32]$_.Id) }
 ShowWindows $set 'uninstaller'
-Shot '4-uninstaller-window'
+[void](Shot '4-uninstaller-window')
 $set | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
 Start-Sleep 2
 
@@ -231,6 +237,8 @@ for ($i = 0; $i -lt 90 -and (UninstallEntries); $i++) { Start-Sleep 1 }
 Start-Sleep 3
 Log "- Silent uninstall exit code $($p.ExitCode)"
 Log "- Installed apps entry removed: $(-not (UninstallEntries))"
+if (UninstallEntries) { $problems.Add("uninstalling left the Installed apps entry behind") }
+if (Test-Path $dir) { $problems.Add("uninstalling left the install folder behind") }
 Log "- Install folder: $(if (Test-Path $dir) { "still there: $((Get-ChildItem $dir -Recurse -Force | ForEach-Object Name) -join ', ')" } else { 'removed' })"
 $left = Shortcuts
 Log "- Shortcuts left: $(if ($left) { ($left | ForEach-Object FullName) -join ', ' } else { 'none' })"
@@ -239,3 +247,12 @@ $runNames = $run.PSObject.Properties.Name | Where-Object { $_ -match 'Harper|Sha
 Log "- Run key left: $(if ($runNames) { $runNames -join ', ' } else { 'none' })"
 Log "- Data folders left (the stand-in model is 100 MB):"
 DataFolders $id
+
+Log ""
+Log "## Verdict"
+if ($problems.Count -eq 0) {
+    Log "PASS: installs, launches without blacking out the screen, keeps running, and uninstalls."
+} else {
+    foreach ($p in $problems) { Log "- FAIL: $p" }
+}
+exit [int]($problems.Count -gt 0)

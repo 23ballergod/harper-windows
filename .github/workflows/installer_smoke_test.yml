@@ -40,8 +40,10 @@ jobs:
         run: |
           $setup = Get-ChildItem installer -Recurse -Filter *-setup.exe | Select-Object -First 1
           ./.github/smoke/installer-smoke.ps1 -Installer $setup.FullName -Out smoke-results
+          $code = $LASTEXITCODE
           "Installer from run $env:INSTALLER_RUN_ID" | Add-Content smoke-results/report.md
           Get-Content smoke-results/report.md | Add-Content $env:GITHUB_STEP_SUMMARY
+          exit $code
       - name: Save results to the branch
         if: always()
         shell: bash
