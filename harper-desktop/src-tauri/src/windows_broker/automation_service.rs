@@ -3,6 +3,7 @@ use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, TrySendError, sync_cha
 use std::thread::sleep;
 use std::time::Duration;
 
+use super::win32_edit;
 use crate::rect::Rect;
 use crate::windows_broker::get_focused_monitor_scale;
 use harper_core::{Span, linting::Suggestion};
@@ -220,6 +221,20 @@ fn apply_suggestion_job(automation: &UIAutomation, mut arguments: Vec<JobArgumen
     let Ok(element) =
         text_element_for_window(automation, request.window, Some(&request.expected_text))
     else {
+        if let Some(edit) = win32_edit::focused_edit(automation, request.window)
+            && win32_edit::get_text(edit).as_deref() == Some(request.expected_text.as_str())
+        {
+            let (span, replacement) = match &request.suggestion {
+                Suggestion::ReplaceWith(with) => (request.span, with.iter().collect()),
+                Suggestion::InsertAfter(with) => (
+                    Span::new(request.span.end, request.span.end),
+                    with.iter().collect(),
+                ),
+                Suggestion::Remove => (request.span, String::new()),
+            };
+            win32_edit::replace(edit, &request.expected_text, span, &replacement);
+            return JobResult::None;
+        }
         eprintln!(
             "Unable to apply Windows suggestion: the source text element is no longer available"
         );
@@ -365,6 +380,16 @@ fn text_element_for_window(
     ))
 }
 
+/// Whether two windows belong to the same process.
+pub(super) fn same_process(a: isize, b: isize) -> bool {
+    let (mut pa, mut pb) = (0u32, 0u32);
+    unsafe {
+        GetWindowThreadProcessId(HWND(a as *mut c_void), Some(&mut pa));
+        GetWindowThreadProcessId(HWND(b as *mut c_void), Some(&mut pb));
+    }
+    pa != 0 && pa == pb
+}
+
 /// Whether `element` belongs to the same process as `window`.
 fn belongs_to_window(element: &UIElement, window: isize) -> bool {
     let mut window_process = 0u32;
@@ -398,6 +423,12 @@ fn get_text_job(automation: &UIAutomation, args: Vec<JobArgument>) -> JobResult 
         return JobResult::Err;
     };
     let Ok(element) = text_element_for_window(automation, *window, None) else {
+        if let Some(edit) = win32_edit::focused_edit(automation, *window)
+            && let Some(text) = win32_edit::get_text(edit)
+        {
+            crate::logging::note_change("text element", "classic Win32 edit box".to_string());
+            return JobResult::String(text);
+        }
         crate::logging::note_change("text element", describe_focused_element(automation));
         return JobResult::Err;
     };
@@ -646,11 +677,39 @@ fn get_bounding_rect_job(automation: &UIAutomation, arguments: Vec<JobArgument>)
     let Some(JobArgument::Text(expected_text)) = arguments.get(1) else {
         return JobResult::Err;
     };
-    let Ok(text_element) = text_element_for_window(automation, *window, Some(expected_text)) else {
-        return JobResult::Err;
+    let effective_monitor_scale = get_focused_monitor_scale();
+    let scale = |(x, y, w, h): &(f64, f64, f64, f64)| {
+        Rect::new(
+            *x / effective_monitor_scale,
+            *y / effective_monitor_scale,
+            *w / effective_monitor_scale,
+            *h / effective_monitor_scale,
+        )
     };
 
-    let effective_monitor_scale = get_focused_monitor_scale();
+    let Ok(text_element) = text_element_for_window(automation, *window, Some(expected_text)) else {
+        let Some(edit) = win32_edit::focused_edit(automation, *window) else {
+            return JobResult::Err;
+        };
+        if win32_edit::get_text(edit).as_deref() != Some(expected_text.as_str()) {
+            return JobResult::Err;
+        }
+        return JobResult::GroupedRects(
+            arguments
+                .iter()
+                .skip(2)
+                .filter_map(|argument| match argument {
+                    JobArgument::Span(span) => Some(
+                        win32_edit::span_rects(edit, expected_text, *span)
+                            .iter()
+                            .map(scale)
+                            .collect(),
+                    ),
+                    _ => None,
+                })
+                .collect(),
+        );
+    };
 
     let mut rects = Vec::with_capacity(arguments.len().saturating_sub(2));
 
@@ -663,19 +722,7 @@ fn get_bounding_rect_job(automation: &UIAutomation, arguments: Vec<JobArgument>)
             return JobResult::Err;
         };
 
-        rects.push(
-            found_rects
-                .iter()
-                .map(|(x, y, w, h)| {
-                    Rect::new(
-                        *x / effective_monitor_scale,
-                        *y / effective_monitor_scale,
-                        *w / effective_monitor_scale,
-                        *h / effective_monitor_scale,
-                    )
-                })
-                .collect(),
-        );
+        rects.push(found_rects.iter().map(scale).collect());
     }
 
     JobResult::GroupedRects(rects)

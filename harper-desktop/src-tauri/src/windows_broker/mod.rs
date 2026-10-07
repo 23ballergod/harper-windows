@@ -29,6 +29,7 @@ use windows::core::{PWSTR, Result as WindowsResult};
 use wintheon::file::{IconSize, Priority};
 use wintheon::gather::Gatherer;
 mod automation_service;
+mod win32_edit;
 
 pub struct WindowsBroker {
     service: Arc<Mutex<AutomationService>>,
