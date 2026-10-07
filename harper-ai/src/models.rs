@@ -1,4 +1,5 @@
-//! The open-weight models users can download. Both are Apache-2.0 licensed Qwen2.5 models.
+//! The open-weight models users can download. Both are Apache-2.0 licensed Qwen3 models, chosen
+//! with `examples/benchmark.rs` (see the "Benchmark results" checks in CI).
 
 use std::path::{Path, PathBuf};
 
@@ -6,10 +7,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub enum AiModel {
-    /// Qwen2.5 0.5B Instruct: quick on any PC, catches the common mistakes.
+    /// Qwen3 1.7B: the default. Fixes 79% of the benchmark's mistakes and leaves 91% of correct
+    /// sentences alone, at the speed of the earlier Qwen2.5 1.5B with fewer false alarms.
     #[default]
     Fast,
-    /// Qwen2.5 1.5B Instruct: noticeably better suggestions, about three times slower.
+    /// Qwen3 4B Instruct 2507: the best tested (83% fixed, 93% left alone), about twice as slow.
     Accurate,
 }
 
@@ -31,33 +33,34 @@ impl ModelFile {
 }
 
 const TOKENIZER: ModelFile = ModelFile {
-    url: "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/resolve/7ae557604adf67be50417f59c2c2f167def9a775/tokenizer.json",
-    file_name: "qwen2.5-tokenizer.json",
-    bytes: 7_031_645,
-    sha256: "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+    // Qwen3 1.7B and Qwen3 4B Instruct 2507 ship byte-identical tokenizers.
+    url: "https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/tokenizer.json",
+    file_name: "qwen3-tokenizer.json",
+    bytes: 11_422_654,
+    sha256: "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
 };
 
 impl AiModel {
     pub fn display_name(self) -> &'static str {
         match self {
-            AiModel::Fast => "Fast (Qwen2.5 0.5B)",
-            AiModel::Accurate => "Accurate (Qwen2.5 1.5B)",
+            AiModel::Fast => "Fast (Qwen3 1.7B)",
+            AiModel::Accurate => "Most accurate (Qwen3 4B)",
         }
     }
 
     pub fn weights(self) -> ModelFile {
         match self {
             AiModel::Fast => ModelFile {
-                url: "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/9217f5db79a29953eb74d5343926648285ec7e67/qwen2.5-0.5b-instruct-q4_k_m.gguf",
-                file_name: "qwen2.5-0.5b-instruct-q4_k_m.gguf",
-                bytes: 491_400_032,
-                sha256: "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+                url: "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/d7f544eead698dbd1f15126ef60b45a1e1933222/Qwen3-1.7B-Q4_K_M.gguf",
+                file_name: "Qwen3-1.7B-Q4_K_M.gguf",
+                bytes: 1_107_409_472,
+                sha256: "b139949c5bd74937ad8ed8c8cf3d9ffb1e99c866c823204dc42c0d91fa181897",
             },
             AiModel::Accurate => ModelFile {
-                url: "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/91cad51170dc346986eccefdc2dd33a9da36ead9/qwen2.5-1.5b-instruct-q4_k_m.gguf",
-                file_name: "qwen2.5-1.5b-instruct-q4_k_m.gguf",
-                bytes: 1_117_320_736,
-                sha256: "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+                url: "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+                file_name: "Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+                bytes: 2_497_281_120,
+                sha256: "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
             },
         }
     }

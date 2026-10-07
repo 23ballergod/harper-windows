@@ -3,16 +3,16 @@ import { Button, Checkbox, CheckIcon, SettingRow } from 'components';
 import { onDestroy, onMount } from 'svelte';
 import { type AiModelId, type AiModelView, type AiSettings, Client } from '$lib/client';
 
-let settings: AiSettings = { enabled: true, model: 'Accurate' };
+let settings: AiSettings = { enabled: true, model: 'Fast' };
 let models: AiModelView[] = [];
 let isLoading = true;
 let error = '';
 let poll: ReturnType<typeof setInterval> | undefined;
 
 const DESCRIPTIONS: Record<AiModelId, string> = {
-	Fast: 'About 500 MB. Quick on any PC and catches the most common mistakes.',
+	Fast: 'About 1.1 GB. Recommended: catches most mistakes a second or two after you pause.',
 	Accurate:
-		'About 1.1 GB. Catches noticeably more, like awkward phrasing and wrong word choices. Best with 8 GB of RAM or more.',
+		'About 2.5 GB. Catches the most mistakes with the fewest false alarms, but takes about twice as long and works your CPU harder. Best with 16 GB of RAM.',
 };
 
 onMount(() => {

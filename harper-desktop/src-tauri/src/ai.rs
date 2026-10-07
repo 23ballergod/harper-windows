@@ -23,7 +23,7 @@ impl Default for AiSettings {
     fn default() -> Self {
         Self {
             enabled: true,
-            model: AiModel::Accurate,
+            model: AiModel::Fast,
         }
     }
 }
@@ -265,7 +265,7 @@ impl AiRuntime {
         let ai_lints: Vec<Lint> = checker.lints(text);
 
         // The AI wins where both flag the same words: the benchmark shows its fix is more often
-        // the right one (79% vs 76% of sentences fixed with the Accurate model).
+        // the right one (79% vs 75% of sentences fixed with Qwen3 1.7B).
         for rule_lints in lints.values_mut() {
             rule_lints.retain(|l| !ai_lints.iter().any(|ai| overlaps(l, ai)));
         }

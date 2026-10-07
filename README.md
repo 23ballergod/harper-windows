@@ -16,12 +16,12 @@ A Windows grammar checker that works in any app you type in: Chrome, the Claude 
 ## How it works
 
 - **Rule checks** (instant): a rule-based grammar engine checks the focused text box through Windows UI Automation and draws underlines over mistakes. Clicking an underline shows the fixes; picking one selects the text in the app and types the correction, so it works in Chrome, Electron apps and Office, and Ctrl+Z undoes it.
-- **AI suggestions** (a second or two after you pause): a quantized Qwen2.5 model runs on your CPU through [candle](https://github.com/huggingface/candle), one sentence at a time. Its correction is diffed against what you wrote, and each changed word becomes its own underline. Heavy rewrites are discarded, and finished sentences are cached so only what you edit is re-checked.
+- **AI suggestions** (a second or two after you pause): a quantized Qwen3 model runs on your CPU through [candle](https://github.com/huggingface/candle), one sentence at a time. Its correction is diffed against what you wrote, and each changed word becomes its own underline. Heavy rewrites are discarded, and finished sentences are cached so only what you edit is re-checked.
 
 | Model | Download | Speed on a typical laptop | Best for |
 |---|---|---|---|
-| Fast (Qwen2.5 0.5B) | about 500 MB | quick | any PC |
-| Accurate (Qwen2.5 1.5B, default) | about 1.1 GB | slower | PCs with 8 GB of RAM or more |
+| Fast (Qwen3 1.7B, default) | about 1.1 GB | a second or two per sentence | any PC with 8 GB of RAM |
+| Most accurate (Qwen3 4B Instruct 2507) | about 2.5 GB | about twice as slow | PCs with 16 GB of RAM |
 
 The models are downloaded from Hugging Face on first use; they are not bundled with the installer.
 
@@ -41,5 +41,5 @@ Shah Re-Writer is licensed under Apache-2.0; see [LICENSE](LICENSE). It is built
 
 - [Harper](https://github.com/Automattic/harper), the rule-based grammar engine, copyright The Harper Contributors and Automattic, Apache-2.0.
 - [candle](https://github.com/huggingface/candle), which runs the AI model, MIT or Apache-2.0. `harper-ai/src/qwen2.rs` is adapted from candle-transformers.
-- Qwen2.5 models by the Qwen team at Alibaba Cloud, Apache-2.0.
+- Qwen3 models by the Qwen team at Alibaba Cloud, Apache-2.0 (GGUF conversions by Unsloth).
 - Tauri, egui, wgpu and other libraries, MIT or Apache-2.0.

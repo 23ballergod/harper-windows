@@ -148,8 +148,8 @@ async function enableTextEditForSetup() {
 async function downloadAiModel() {
 	aiError = '';
 	try {
-		await Client.setAiSettings({ enabled: true, model: 'Accurate' });
-		await Client.downloadAiModel('Accurate');
+		await Client.setAiSettings({ enabled: true, model: 'Fast' });
+		await Client.downloadAiModel('Fast');
 		aiDownloadStarted = true;
 	} catch (error) {
 		aiError = `Unable to start the download: ${error}`;

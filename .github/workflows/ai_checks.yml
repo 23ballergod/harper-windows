@@ -39,31 +39,19 @@ jobs:
       matrix:
         include:
           # The app's own models, by name.
+          # Candidates can be added as entries whose args are "<file.gguf> <tokenizer.json>".
           - model: Fast
-            repo: Qwen/Qwen2.5-0.5B-Instruct-GGUF
-            file: qwen2.5-0.5b-instruct-q4_k_m.gguf
-            tok_repo: Qwen/Qwen2.5-0.5B-Instruct
-            tok_file: qwen2.5-tokenizer.json
-            args: Fast
-          - model: Accurate
-            repo: Qwen/Qwen2.5-1.5B-Instruct-GGUF
-            file: qwen2.5-1.5b-instruct-q4_k_m.gguf
-            tok_repo: Qwen/Qwen2.5-0.5B-Instruct
-            tok_file: qwen2.5-tokenizer.json
-            args: Accurate
-          # Candidates, loaded from their files.
-          - model: Qwen3 1.7B
             repo: unsloth/Qwen3-1.7B-GGUF
             file: Qwen3-1.7B-Q4_K_M.gguf
             tok_repo: Qwen/Qwen3-1.7B
             tok_file: qwen3-tokenizer.json
-            args: Qwen3-1.7B-Q4_K_M.gguf qwen3-tokenizer.json
-          - model: Qwen3 4B Instruct 2507
+            args: Fast
+          - model: Accurate
             repo: unsloth/Qwen3-4B-Instruct-2507-GGUF
             file: Qwen3-4B-Instruct-2507-Q4_K_M.gguf
-            tok_repo: Qwen/Qwen3-4B-Instruct-2507
-            tok_file: qwen3-2507-tokenizer.json
-            args: Qwen3-4B-Instruct-2507-Q4_K_M.gguf qwen3-2507-tokenizer.json
+            tok_repo: Qwen/Qwen3-1.7B
+            tok_file: qwen3-tokenizer.json
+            args: Accurate
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1

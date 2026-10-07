@@ -41,7 +41,7 @@ async function loadCurrentVersion() {
               Apache License 2.0.
             </li>
             <li>
-              <strong>Qwen2.5</strong> AI models, downloaded on request. Copyright Alibaba Cloud.
+              <strong>Qwen3</strong> AI models, downloaded on request. Copyright Alibaba Cloud.
               Apache License 2.0.
             </li>
             <li>
