@@ -204,22 +204,25 @@ $darkTyped = Shot '3-notepad-typed'
 if ($darkTyped -gt 0.5 -and $darkBefore -lt 0.5) { $problems.Add("the screen was black while typing in Notepad") }
 if ($app.HasExited) { $problems.Add("the app quit while typing in Notepad") }
 
-# Underlines are the only colored pixels in Notepad's first lines of black-on-white text. Skip the
-# title bar and menu (top 50 px) and the scroll bar.
+# Underlines are horizontal runs of colored pixels under Notepad's black-on-white text. ClearType
+# also tints the edges of letters, but only a pixel or two wide, so count runs of 8 or more.
+# Skip the title bar and menu (top 50 px) and the scroll bar.
 $img = [System.Drawing.Bitmap]::FromFile((Join-Path $Out '3-notepad-typed.png'))
 $vs = [System.Windows.Forms.SystemInformation]::VirtualScreen
-$colored = 0
+$runs = 0
 for ($y = $npRect.T + 50; $y -lt [Math]::Min($npRect.T + 160, $npRect.B); $y++) {
+    $run = 0
     for ($x = $npRect.L + 5; $x -lt $npRect.R - 30; $x++) {
         $px = $img.GetPixel($x - $vs.Left, $y - $vs.Top)
         $max = [Math]::Max($px.R, [Math]::Max($px.G, $px.B))
         $min = [Math]::Min($px.R, [Math]::Min($px.G, $px.B))
-        if ($max - $min -gt 80) { $colored++ }
+        if ($max - $min -gt 80) { $run++ } else { if ($run -ge 8) { $runs++ }; $run = 0 }
     }
+    if ($run -ge 8) { $runs++ }
 }
 $img.Dispose()
-Log "- Foreground window at $($npRect.L),$($npRect.T)-$($npRect.R),$($npRect.B); colored (underline) pixels in its text area: $colored"
-if ($colored -lt 20) { $problems.Add("no underlines appeared under the mistakes typed into Notepad") }
+Log "- Foreground window at $($npRect.L),$($npRect.T)-$($npRect.R),$($npRect.B); underline-like colored runs in its text area: $runs"
+if ($runs -lt 2) { $problems.Add("no underlines appeared under the mistakes typed into Notepad") }
 Get-Process -Name notepad -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # --- Leftover state before uninstalling --------------------------------------------------------

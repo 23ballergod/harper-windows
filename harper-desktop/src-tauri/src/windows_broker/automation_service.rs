@@ -311,40 +311,51 @@ fn get_text(element: &UIElement) -> uiautomation::Result<String> {
     range.get_text(-1)
 }
 
-/// Finds the focused text element below `window`.
+/// Finds the focused text element in `window`.
 ///
-/// When `expected_text` is provided, unrelated text providers are excluded.
+/// Asks Windows for the element with keyboard focus first, which works for classic Win32 edit
+/// controls (Notepad) as well as browsers and Electron apps, then falls back to searching the
+/// window. When `expected_text` is provided, unrelated text providers are excluded.
 fn text_element_for_window(
     automation: &UIAutomation,
     window: isize,
     expected_text: Option<&str>,
 ) -> uiautomation::Result<UIElement> {
-    let root = automation.element_from_handle(Handle::from(window))?;
     let text_condition = automation.create_property_condition(
         UIProperty::IsTextPatternAvailable,
         Variant::from(true),
         None,
     )?;
+
+    let mut candidates = Vec::new();
+    if let Ok(focused) = automation.get_focused_element()
+        && belongs_to_window(&focused, window)
+    {
+        // Some editors give focus to a container around the text box.
+        let inner = focused.find_first(TreeScope::Descendants, &text_condition);
+        candidates.push(focused);
+        candidates.extend(inner);
+    }
+
+    let root = automation.element_from_handle(Handle::from(window))?;
     let keyboard_condition = automation.create_property_condition(
         UIProperty::HasKeyboardFocus,
         Variant::from(true),
         None,
     )?;
     let condition = automation.create_and_condition(text_condition, keyboard_condition)?;
+    candidates.extend(
+        root.find_all(TreeScope::Subtree, &condition)
+            .unwrap_or_default(),
+    );
 
-    for element in root.find_all(TreeScope::Subtree, &condition)? {
-        if let Some(expected) = expected_text {
-            let text = get_text(&element);
-
-            let Ok(text) = text else {
-                continue;
-            };
-
-            if expected != text {
-                continue;
-            }
+    for element in candidates {
+        let Ok(text) = get_text(&element) else {
+            continue;
+        };
+        if expected_text.is_some_and(|expected| expected != text) {
+            continue;
         }
-
         return Ok(element);
     }
 
@@ -354,11 +365,40 @@ fn text_element_for_window(
     ))
 }
 
+/// Whether `element` belongs to the same process as `window`.
+fn belongs_to_window(element: &UIElement, window: isize) -> bool {
+    let mut window_process = 0u32;
+    unsafe {
+        GetWindowThreadProcessId(HWND(window as *mut c_void), Some(&mut window_process));
+    }
+    element
+        .get_process_id()
+        .is_ok_and(|pid| pid == window_process && pid != 0)
+}
+
+/// Describes the focused element, to explain in the log why its text can't be read.
+fn describe_focused_element(automation: &UIAutomation) -> String {
+    let Ok(focused) = automation.get_focused_element() else {
+        return "Windows reports no focused element".to_string();
+    };
+    format!(
+        "focused element is a {:?} (class {:?}, framework {:?}); text pattern: {}",
+        focused.get_control_type().ok(),
+        focused.get_classname().unwrap_or_default(),
+        focused.get_framework_id().unwrap_or_default(),
+        match focused.get_pattern::<UITextPattern>() {
+            Ok(_) => "yes".to_string(),
+            Err(error) => format!("no ({error})"),
+        }
+    )
+}
+
 fn get_text_job(automation: &UIAutomation, args: Vec<JobArgument>) -> JobResult {
     let Some(JobArgument::Window(window)) = args.first() else {
         return JobResult::Err;
     };
     let Ok(element) = text_element_for_window(automation, *window, None) else {
+        crate::logging::note_change("text element", describe_focused_element(automation));
         return JobResult::Err;
     };
 
