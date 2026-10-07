@@ -225,6 +225,14 @@ async fn supports_transparency(setup: &WgpuSetupCreateNew, window: Arc<WinitWind
         )
     });
 
+    let info = adapter.get_info();
+    tracing::info!(
+        "Overlay GPU: {} ({:?}, {:?}); alpha modes {alpha_modes:?}",
+        info.name,
+        info.backend,
+        info.device_type
+    );
+
     if !transparent {
         eprintln!(
             "Overlay disabled: the {:?} adapter only offers {alpha_modes:?}, which would draw an opaque window",

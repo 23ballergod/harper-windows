@@ -151,6 +151,14 @@ impl WindowManagerApp {
     fn read_rect_updates(&mut self) {
         let lints = self.os_broker.get_boxes(self.lint_text.as_mut());
         if let Some(lints) = lints {
+            crate::logging::note_change(
+                "overlay",
+                format!(
+                    "{} underlines to draw across {} screen(s)",
+                    lints.len(),
+                    self.windows.len()
+                ),
+            );
             self.render_state.set_lints(lints);
         }
 

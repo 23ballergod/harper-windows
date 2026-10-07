@@ -14,15 +14,13 @@ use harper_core::{
     spell::MutableDictionary,
 };
 use serde::Serialize;
-use std::io::stderr;
 use std::{
     cell::RefCell,
     rc::Rc,
     sync::{Arc, Mutex as StdMutex},
 };
 use tauri::Manager as _;
-use tracing::{Level, error};
-use tracing_subscriber::FmtSubscriber;
+use tracing::error;
 
 use crate::os_broker::{AccessibilityPermissionStatus, OsBroker};
 use tokio::{
@@ -42,6 +40,7 @@ mod desktop_updater;
 pub mod highlighter;
 pub mod highlighter_service;
 pub mod lint_kind_color;
+pub(crate) mod logging;
 mod os_broker;
 pub mod rect;
 
@@ -116,16 +115,11 @@ fn warm_app_search_cache(app: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let subscriber = FmtSubscriber::builder()
-        .map_writer(move |_| stderr)
-        .with_ansi(false)
-        .with_max_level(Level::WARN)
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("Unable to set up tracing subscriber.");
-
     let args = Args::parse();
+    logging::init(match args.command {
+        Some(Command::Highlighter { .. }) => "highlighter",
+        None => "app",
+    });
 
     match args.command {
         Some(Command::Highlighter { no_parent }) => run_highlighter(!no_parent),

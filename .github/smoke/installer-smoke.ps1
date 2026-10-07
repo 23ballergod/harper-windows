@@ -37,6 +37,7 @@ public static class Win {
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] public static extern IntPtr GetWindowLongPtr(IntPtr h, int i);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
 
     // Visible top-level windows owned by any of the given processes.
@@ -196,9 +197,29 @@ $shell.SendKeys('This is an test. Their going to the store. She go to school eve
 Start-Sleep 15
 Log "- Main app still running: $(-not $app.HasExited)"
 ShowWindows (Pids $dir) 'with Notepad focused'
+$fg = [Win]::GetForegroundWindow()
+$npRect = New-Object Win+RECT
+[void][Win]::GetWindowRect($fg, [ref]$npRect)
 $darkTyped = Shot '3-notepad-typed'
 if ($darkTyped -gt 0.5 -and $darkBefore -lt 0.5) { $problems.Add("the screen was black while typing in Notepad") }
 if ($app.HasExited) { $problems.Add("the app quit while typing in Notepad") }
+
+# Underlines are the only colored pixels in Notepad's first lines of black-on-white text. Skip the
+# title bar and menu (top 50 px) and the scroll bar.
+$img = [System.Drawing.Bitmap]::FromFile((Join-Path $Out '3-notepad-typed.png'))
+$vs = [System.Windows.Forms.SystemInformation]::VirtualScreen
+$colored = 0
+for ($y = $npRect.T + 50; $y -lt [Math]::Min($npRect.T + 160, $npRect.B); $y++) {
+    for ($x = $npRect.L + 5; $x -lt $npRect.R - 30; $x++) {
+        $px = $img.GetPixel($x - $vs.Left, $y - $vs.Top)
+        $max = [Math]::Max($px.R, [Math]::Max($px.G, $px.B))
+        $min = [Math]::Min($px.R, [Math]::Min($px.G, $px.B))
+        if ($max - $min -gt 80) { $colored++ }
+    }
+}
+$img.Dispose()
+Log "- Foreground window at $($npRect.L),$($npRect.T)-$($npRect.R),$($npRect.B); colored (underline) pixels in its text area: $colored"
+if ($colored -lt 20) { $problems.Add("no underlines appeared under the mistakes typed into Notepad") }
 Get-Process -Name notepad -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # --- Leftover state before uninstalling --------------------------------------------------------
@@ -213,6 +234,20 @@ DataFolders $id
 
 (Pids $dir) | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
 Start-Sleep 3
+
+$logs = "$env:LOCALAPPDATA\$id\logs"
+if (Test-Path $logs) {
+    Copy-Item $logs (Join-Path $Out 'logs') -Recurse -Force
+    foreach ($f in Get-ChildItem $logs -Filter *.log) {
+        Log ""
+        Log "### $($f.Name) (last 40 lines)"
+        Log '```'
+        Get-Content $f.FullName -Tail 40 | ForEach-Object { Log $_ }
+        Log '```'
+    }
+} else {
+    Log "- No log folder at ``$logs``"
+}
 
 # Stand-in for a downloaded AI model, to see whether uninstalling removes it.
 $models = "$env:LOCALAPPDATA\$id\models"

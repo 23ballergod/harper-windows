@@ -1,3 +1,4 @@
+use crate::logging::note_change;
 use crate::windows_broker::automation_service::AutomationService;
 use crate::{
     os_broker::{AccessibilityPermissionStatus, AppSearchResult, OsBroker},
@@ -46,11 +47,32 @@ impl WindowsBroker {
 
     pub fn should_lint_focused_window(&mut self) -> Option<bool> {
         let mut service = self.service.lock().ok()?;
-        let focused_window = service.resolve_focused_window()?;
-        let path = get_window_path(focused_window).ok()?;
+        let Some(focused_window) = service.resolve_focused_window() else {
+            note_change("focus", "no focused window".to_string());
+            return None;
+        };
+        let path = match get_window_path(focused_window) {
+            Ok(path) => path,
+            Err(error) => {
+                note_change(
+                    "focus",
+                    format!("cannot read the focused app's path: {error}"),
+                );
+                return None;
+            }
+        };
         drop(service);
 
-        if !(self.is_integration_enabled)(&path.to_string_lossy()) {
+        let enabled = (self.is_integration_enabled)(&path.to_string_lossy());
+        note_change(
+            "focus",
+            format!(
+                "{} (checking {})",
+                path.display(),
+                if enabled { "on" } else { "off" }
+            ),
+        );
+        if !enabled {
             return Some(false);
         }
 
@@ -90,17 +112,40 @@ impl OsBroker for WindowsBroker {
             None => return None,
         }
 
-        let text = self.service.lock().ok()?.get_text()?;
+        let Some(text) = self.service.lock().ok()?.get_text() else {
+            note_change(
+                "text",
+                "no readable text box has keyboard focus".to_string(),
+            );
+            return None;
+        };
         if text.len() > 16_000 {
+            note_change("text", "text is too long to check".to_string());
             return Some(Vec::new());
         }
 
         let lints = lint_text(&text);
-        let rects = self
+        let lint_count = lints.values().map(Vec::len).sum::<usize>();
+        let Some(rects) = self
             .service
             .lock()
             .ok()?
-            .get_bounding_boxes(&text, lints.values().flatten().map(|lint| lint.span))?;
+            .get_bounding_boxes(&text, lints.values().flatten().map(|lint| lint.span))
+        else {
+            note_change(
+                "text",
+                format!("{lint_count} problems found, but their positions on screen are unknown"),
+            );
+            return None;
+        };
+        note_change(
+            "text",
+            format!(
+                "{} problems found, {} with a position on screen",
+                lint_count,
+                rects.iter().filter(|r| !r.is_empty()).count()
+            ),
+        );
 
         Some(
             lints
