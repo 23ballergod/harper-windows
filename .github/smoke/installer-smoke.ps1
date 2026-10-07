@@ -235,7 +235,7 @@ Log ""
 Log "## Typing into Notepad"
 $np = Start-Process notepad -PassThru
 Start-Sleep 4
-TypeInto 'Notepad' 'Notepad' '3-notepad-typed' $false
+TypeInto 'Notepad' 'Notepad' '3-notepad-typed' $true
 ShowWindows (Pids $dir) 'with Notepad focused'
 
 Log ""
@@ -276,7 +276,6 @@ foreach ($t in $tests) {
     Log "- $($t.Label): $pixels colored pixels drawn by the app over the window"
     if ($pixels -lt 30) {
         if ($t.Required) { $problems.Add("no underlines appeared under the mistakes typed into $($t.Label)") }
-        else { Log "  - (not required: classic Win32 edit boxes are not supported yet)" }
     }
 }
 Get-Process -Name notepad, chrome -ErrorAction SilentlyContinue | Stop-Process -Force
