@@ -9,6 +9,7 @@ mod diff;
 mod engine;
 mod models;
 mod qwen2;
+mod qwen3;
 mod sentences;
 mod tuning;
 

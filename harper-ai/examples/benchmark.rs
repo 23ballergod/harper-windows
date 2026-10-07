@@ -5,7 +5,7 @@
 //! checks the original text and only one suggestion is kept where they overlap. A sentence counts as fixed when accepting every suggestion produces one of
 //! the reference answers exactly.
 //!
-//! Usage: `cargo run -p harper-ai --release --example benchmark -- <model dir> [Fast|Accurate] [limit]`
+//! Usage: `cargo run -p harper-ai --release --example benchmark -- <model dir> [Fast|Accurate | <file.gguf> <tokenizer.json>] [limit]`
 
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
@@ -212,9 +212,27 @@ impl Score {
 fn main() {
     let mut args = std::env::args().skip(1);
     let dir = std::path::PathBuf::from(args.next().expect("pass the model directory"));
-    let model = match args.next().as_deref() {
-        Some("Accurate") => AiModel::Accurate,
-        _ => AiModel::Fast,
+    // Either one of the app's models by name, or any GGUF file followed by its tokenizer, to try
+    // out candidates before they ship.
+    let model_arg = args.next().unwrap_or_default();
+    let (name, weights, tokenizer) = if model_arg.ends_with(".gguf") {
+        let tokenizer = args.next().expect("pass the tokenizer after the GGUF file");
+        (model_arg.clone(), dir.join(&model_arg), dir.join(tokenizer))
+    } else {
+        let model = match model_arg.as_str() {
+            "Accurate" => AiModel::Accurate,
+            _ => AiModel::Fast,
+        };
+        let weights = if model.is_downloaded(&dir) {
+            model.weights_path(&dir)
+        } else {
+            dir.join("missing.gguf")
+        };
+        (
+            model.display_name().to_string(),
+            weights,
+            model.tokenizer_path(&dir),
+        )
     };
     let limit = args.next().and_then(|s| s.parse().ok());
 
@@ -222,10 +240,9 @@ fn main() {
     let mut linter = LintGroup::new_curated(FstDictionary::curated(), Dialect::American)
         .with_lint_config(harper_core::linting::FlatConfig::new_curated());
     // Without a downloaded model, only Harper's rules are scored.
-    let mut corrector = model.is_downloaded(&dir).then(|| {
-        QwenCorrector::load(&model.weights_path(&dir), &model.tokenizer_path(&dir))
-            .expect("failed to load model")
-    });
+    let mut corrector = weights
+        .is_file()
+        .then(|| QwenCorrector::load(&weights, &tokenizer).expect("failed to load model"));
 
     let mut harper = Score::default();
     let mut ai = Score::default();
@@ -273,13 +290,19 @@ fn main() {
         }
     }
 
-    println!("## {} on {} sentences\n", model.display_name(), cases.len());
+    println!("## {} on {} sentences\n", name, cases.len());
     println!("| System | Fixed | Left correct text alone | Time per sentence |");
     println!("|---|---|---|---|");
     println!("{}", harper.row("Harper rules", cases.len()));
     println!("{}", ai.row("AI model", cases.len()));
-    println!("{}", both.row("Harper + AI (Harper wins overlaps)", cases.len()));
-    println!("{}", ai_first.row("Harper + AI (the app: AI wins overlaps)", cases.len()));
+    println!(
+        "{}",
+        both.row("Harper + AI (Harper wins overlaps)", cases.len())
+    );
+    println!(
+        "{}",
+        ai_first.row("Harper + AI (the app: AI wins overlaps)", cases.len())
+    );
 
     println!("\n| Category | Harper | AI | Harper + AI |");
     println!("|---|---|---|---|");

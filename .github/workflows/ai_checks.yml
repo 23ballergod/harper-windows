@@ -38,12 +38,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # The app's own models, by name.
           - model: Fast
-            weights: Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf
+            repo: Qwen/Qwen2.5-0.5B-Instruct-GGUF
             file: qwen2.5-0.5b-instruct-q4_k_m.gguf
+            tok_repo: Qwen/Qwen2.5-0.5B-Instruct
+            tok_file: qwen2.5-tokenizer.json
+            args: Fast
           - model: Accurate
-            weights: Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf
+            repo: Qwen/Qwen2.5-1.5B-Instruct-GGUF
             file: qwen2.5-1.5b-instruct-q4_k_m.gguf
+            tok_repo: Qwen/Qwen2.5-0.5B-Instruct
+            tok_file: qwen2.5-tokenizer.json
+            args: Accurate
+          # Candidates, loaded from their files.
+          - model: Qwen3 1.7B
+            repo: unsloth/Qwen3-1.7B-GGUF
+            file: Qwen3-1.7B-Q4_K_M.gguf
+            tok_repo: Qwen/Qwen3-1.7B
+            tok_file: qwen3-tokenizer.json
+            args: Qwen3-1.7B-Q4_K_M.gguf qwen3-tokenizer.json
+          - model: Qwen3 4B Instruct 2507
+            repo: unsloth/Qwen3-4B-Instruct-2507-GGUF
+            file: Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+            tok_repo: Qwen/Qwen3-4B-Instruct-2507
+            tok_file: qwen3-2507-tokenizer.json
+            args: Qwen3-4B-Instruct-2507-Q4_K_M.gguf qwen3-2507-tokenizer.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -58,26 +78,39 @@ jobs:
       - name: Download model
         run: |
           mkdir -p models
-          [ -f models/${{ matrix.file }} ] || curl -fsSL -o models/${{ matrix.file }} https://huggingface.co/${{ matrix.weights }}
-          [ -f models/qwen2.5-tokenizer.json ] || curl -fsSL -o models/qwen2.5-tokenizer.json https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/resolve/main/tokenizer.json
+          [ -f models/${{ matrix.file }} ] || curl -fsSL -o models/${{ matrix.file }} https://huggingface.co/${{ matrix.repo }}/resolve/main/${{ matrix.file }}
+          [ -f models/${{ matrix.tok_file }} ] || curl -fsSL -o models/${{ matrix.tok_file }} https://huggingface.co/${{ matrix.tok_repo }}/resolve/main/tokenizer.json
           ls -la models
+      - name: Record exact files
+        run: |
+          {
+            echo "### Files"
+            for r in "${{ matrix.repo }}" "${{ matrix.tok_repo }}"; do
+              echo "- $r revision $(curl -fsSL https://huggingface.co/api/models/$r | jq -r .sha)"
+            done
+            for f in models/${{ matrix.file }} models/${{ matrix.tok_file }}; do
+              echo "- $(basename $f): $(stat -c %s $f) bytes, sha256 $(sha256sum $f | cut -d' ' -f1)"
+            done
+          } | tee files.md
       - name: Model smoke test
+        if: matrix.model == 'Fast' || matrix.model == 'Accurate'
         run: cargo run -p harper-ai --release --example correct -- models ${{ matrix.model }} | tee smoke-${{ matrix.model }}.txt
       - name: Benchmark on the tricky set
         run: |
-          cargo run -p harper-ai --release --example benchmark -- models ${{ matrix.model }} 2>/dev/null | tee benchmark-${{ matrix.model }}.md
-          cat benchmark-${{ matrix.model }}.md >> "$GITHUB_STEP_SUMMARY"
+          cargo run -p harper-ai --release --example benchmark -- models ${{ matrix.args }} 2>/dev/null | tee "benchmark-${{ matrix.model }}.md"
+          cat files.md >> "benchmark-${{ matrix.model }}.md"
+          cat "benchmark-${{ matrix.model }}.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Publish results as a check
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
-            [ -f benchmark-${{ matrix.model }}.md ] && cat benchmark-${{ matrix.model }}.md
+            [ -f "benchmark-${{ matrix.model }}.md" ] && cat "benchmark-${{ matrix.model }}.md"
             echo
             echo '### Smoke test'
             echo '```'
-            [ -f smoke-${{ matrix.model }}.txt ] && tail -c 20000 smoke-${{ matrix.model }}.txt
+            [ -f "smoke-${{ matrix.model }}.txt" ] && tail -c 20000 "smoke-${{ matrix.model }}.txt"
             echo '```'
           } > results.md
           head -c 60000 results.md > summary.md
@@ -89,5 +122,5 @@ jobs:
             | gh api repos/${{ github.repository }}/check-runs --input -
       - uses: actions/upload-artifact@v4
         with:
-          name: benchmark-${{ matrix.model }}
-          path: benchmark-${{ matrix.model }}.md
+          name: benchmark-${{ strategy.job-index }}
+          path: benchmark-*.md

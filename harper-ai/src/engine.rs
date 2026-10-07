@@ -2,7 +2,6 @@
 
 use std::path::Path;
 
-use crate::qwen2::ModelWeights;
 use candle_core::quantized::gguf_file;
 use candle_core::{Device, Tensor};
 use tokenizers::Tokenizer;
@@ -38,8 +37,46 @@ const EXAMPLES: &[(&str, &str)] = &[
     ),
 ];
 
+/// The supported model architectures, which share one interface.
+enum Model {
+    Qwen2(crate::qwen2::ModelWeights),
+    Qwen3(crate::qwen3::ModelWeights),
+}
+
+macro_rules! each_model {
+    ($self:expr, $m:ident => $body:expr) => {
+        match $self {
+            Model::Qwen2($m) => $body,
+            Model::Qwen3($m) => $body,
+        }
+    };
+}
+
+impl Model {
+    fn forward(&mut self, x: &Tensor, pos: usize) -> candle_core::Result<Tensor> {
+        each_model!(self, m => m.forward(x, pos))
+    }
+    fn forward_all(&mut self, x: &Tensor, pos: usize) -> candle_core::Result<Tensor> {
+        each_model!(self, m => m.forward_all(x, pos))
+    }
+    fn clear_kv_cache(&mut self) {
+        each_model!(self, m => m.clear_kv_cache())
+    }
+    fn snapshot_kv_cache(&self) -> Vec<Option<(Tensor, Tensor)>> {
+        each_model!(self, m => m.snapshot_kv_cache())
+    }
+    fn restore_kv_cache(&mut self, snapshot: &[Option<(Tensor, Tensor)>]) {
+        each_model!(self, m => m.restore_kv_cache(snapshot))
+    }
+    fn truncate_kv_cache(&mut self, len: usize) -> candle_core::Result<()> {
+        each_model!(self, m => m.truncate_kv_cache(len))
+    }
+}
+
 pub struct QwenCorrector {
-    model: ModelWeights,
+    model: Model,
+    /// Hybrid Qwen3 models think out loud unless the answer starts with an empty thinking block.
+    skip_thinking: bool,
     tokenizer: Tokenizer,
     device: Device,
     eos_tokens: Vec<u32>,
@@ -49,14 +86,33 @@ pub struct QwenCorrector {
 }
 
 impl QwenCorrector {
-    /// Loads a Qwen2-architecture GGUF model and its `tokenizer.json`.
+    /// Loads a Qwen2 or Qwen3 GGUF model and its `tokenizer.json`.
     pub fn load(model_path: &Path, tokenizer_path: &Path) -> Result<Self, String> {
         let device = Device::Cpu;
         let mut file = std::fs::File::open(model_path)
             .map_err(|e| format!("cannot open {}: {e}", model_path.display()))?;
         let content = gguf_file::Content::read(&mut file).map_err(|e| e.to_string())?;
-        let model =
-            ModelWeights::from_gguf(content, &mut file, &device).map_err(|e| e.to_string())?;
+        let metadata_str = |key: &str| {
+            content
+                .metadata
+                .get(key)
+                .and_then(|v| v.to_string().ok())
+                .cloned()
+                .unwrap_or_default()
+        };
+        let architecture = metadata_str("general.architecture");
+        let skip_thinking = metadata_str("tokenizer.chat_template").contains("enable_thinking");
+        let model = match architecture.as_str() {
+            "qwen2" => Model::Qwen2(
+                crate::qwen2::ModelWeights::from_gguf(content, &mut file, &device)
+                    .map_err(|e| e.to_string())?,
+            ),
+            "qwen3" => Model::Qwen3(
+                crate::qwen3::ModelWeights::from_gguf(content, &mut file, &device)
+                    .map_err(|e| e.to_string())?,
+            ),
+            other => return Err(format!("unsupported model architecture {other:?}")),
+        };
         let tokenizer = Tokenizer::from_file(tokenizer_path).map_err(|e| e.to_string())?;
 
         let eos_tokens = ["<|im_end|>", "<|endoftext|>"]
@@ -66,6 +122,7 @@ impl QwenCorrector {
 
         let mut corrector = Self {
             model,
+            skip_thinking,
             tokenizer,
             device,
             eos_tokens,
@@ -77,19 +134,28 @@ impl QwenCorrector {
     }
 
     /// The part of the prompt that is the same for every sentence.
-    fn prefix() -> String {
+    fn prefix(&self) -> String {
         let mut prompt = format!("<|im_start|>system\n{SYSTEM_PROMPT}<|im_end|>\n");
         for (input, output) in EXAMPLES {
             prompt.push_str(&format!(
-                "<|im_start|>user\n{input}<|im_end|>\n<|im_start|>assistant\n{output}<|im_end|>\n"
+                "<|im_start|>user\n{input}<|im_end|>\n{}{output}<|im_end|>\n",
+                self.answer_start()
             ));
         }
         prompt.push_str("<|im_start|>user\n");
         prompt
     }
 
-    fn suffix(sentence: &str) -> String {
-        format!("{sentence}<|im_end|>\n<|im_start|>assistant\n")
+    fn answer_start(&self) -> &'static str {
+        if self.skip_thinking {
+            "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+        } else {
+            "<|im_start|>assistant\n"
+        }
+    }
+
+    fn suffix(&self, sentence: &str) -> String {
+        format!("{sentence}<|im_end|>\n{}", self.answer_start())
     }
 
     fn encode(&self, text: &str) -> Result<Vec<u32>, String> {
@@ -101,7 +167,7 @@ impl QwenCorrector {
 
     /// Runs the shared prefix through the model once and keeps its attention cache.
     fn warm_prefix(&mut self) -> Result<(), String> {
-        let tokens = self.encode(&Self::prefix())?;
+        let tokens = self.encode(&self.prefix())?;
         self.model.clear_kv_cache();
         let input = Tensor::new(tokens.as_slice(), &self.device)
             .and_then(|t| t.unsqueeze(0))
@@ -152,7 +218,7 @@ impl QwenCorrector {
 
 impl Corrector for QwenCorrector {
     fn correct(&mut self, sentence: &str) -> Result<String, String> {
-        let prompt_tokens = self.encode(&Self::suffix(sentence))?;
+        let prompt_tokens = self.encode(&self.suffix(sentence))?;
         let source = self.encode(sentence)?;
         let max_new = source.len() * 3 / 2 + 16;
 
