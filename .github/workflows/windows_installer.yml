@@ -68,13 +68,6 @@ jobs:
           name: harper-windows-installer
           path: harper-desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*
           if-no-files-found: error
-      - name: Release artifacts
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
-        with:
-          artifacts: harper-desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*
-          allowUpdates: true
-          draft: true
 
   smoke-test:
     name: Install, launch and uninstall on Windows
@@ -112,3 +105,25 @@ jobs:
           git add -f smoke-results
           git commit -qm "Installer smoke test for $GITHUB_SHA [skip ci]"
           git push -f origin HEAD:refs/heads/smoke-results
+
+  # A tag like v0.1.0-beta.1 publishes the installer as a pre-release, but only after it passed the
+  # Windows smoke test, so the download link always points at a build that was checked.
+  release:
+    name: Publish pre-release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: harper-windows-installer
+          path: installer
+      - uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
+        with:
+          artifacts: installer/*-setup.exe
+          allowUpdates: true
+          prerelease: true
+          name: Shah Re-Writer ${{ github.ref_name }}
+          body: Test build of Shah Re-Writer for Windows. Download the setup file below and run it.
