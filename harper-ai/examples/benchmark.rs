@@ -253,7 +253,7 @@ fn main() {
                 both.record(case, &b, harper_time + ai_time);
                 let a = merge_and_apply(&case.source, &a_edits, &h_edits);
                 ai_first.record(case, &a, harper_time + ai_time);
-                b
+                a
             }
             None => h,
         };
@@ -278,8 +278,8 @@ fn main() {
     println!("|---|---|---|---|");
     println!("{}", harper.row("Harper rules", cases.len()));
     println!("{}", ai.row("AI model", cases.len()));
-    println!("{}", both.row("Harper + AI (the app: Harper wins overlaps)", cases.len()));
-    println!("{}", ai_first.row("Harper + AI (AI wins overlaps)", cases.len()));
+    println!("{}", both.row("Harper + AI (Harper wins overlaps)", cases.len()));
+    println!("{}", ai_first.row("Harper + AI (the app: AI wins overlaps)", cases.len()));
 
     println!("\n| Category | Harper | AI | Harper + AI |");
     println!("|---|---|---|---|");
@@ -292,7 +292,7 @@ fn main() {
             "| {category} | {} | {} | {} |",
             pct(&harper),
             pct(&ai),
-            pct(&both)
+            pct(&ai_first)
         );
     }
 

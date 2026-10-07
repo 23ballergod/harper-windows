@@ -247,8 +247,8 @@ impl AiRuntime {
         self.settings = Some(settings);
     }
 
-    /// Adds AI lints for `text` to `lints`, skipping any that overlap a rule-based lint (Harper's
-    /// own explanation is more specific) and honoring the rule being turned off.
+    /// Adds AI lints for `text` to `lints`, replacing rule-based lints on the same words, and
+    /// honoring the rule being turned off.
     pub fn add_lints(
         &mut self,
         text: &str,
@@ -262,19 +262,24 @@ impl AiRuntime {
         self.sync_settings();
         let Some(checker) = &self.checker else { return };
 
-        let ai_lints: Vec<Lint> = checker
-            .lints(text)
-            .into_iter()
-            .filter(|ai| {
-                !lints
-                    .values()
-                    .flatten()
-                    .any(|l| l.span.start < ai.span.end && ai.span.start < l.span.end)
-            })
-            .collect();
+        let ai_lints: Vec<Lint> = checker.lints(text);
+
+        // The AI wins where both flag the same words: the benchmark shows its fix is more often
+        // the right one (79% vs 76% of sentences fixed with the Accurate model).
+        for rule_lints in lints.values_mut() {
+            rule_lints.retain(|l| !ai_lints.iter().any(|ai| overlaps(l, ai)));
+        }
+        lints.retain(|_, rule_lints| !rule_lints.is_empty());
 
         if !ai_lints.is_empty() {
             lints.insert(AI_RULE_NAME.to_string(), ai_lints);
         }
     }
+}
+
+/// Whether two lints touch the same characters. An insertion (an empty span) counts as covering
+/// the character it is attached to.
+fn overlaps(a: &Lint, b: &Lint) -> bool {
+    a.span.start < b.span.end.max(b.span.start + 1)
+        && b.span.start < a.span.end.max(a.span.start + 1)
 }
