@@ -25,7 +25,7 @@ const EM_POSFROMCHAR: u32 = 0x00D6;
 pub fn focused_edit(automation: &UIAutomation, window: isize) -> Option<HWND> {
     let focused: UIElement = automation.get_focused_element().ok()?;
     let class = focused.get_classname().ok()?;
-    if !class.eq_ignore_ascii_case("Edit") {
+    if !class.eq_ignore_ascii_case("Edit") || focused.is_password().unwrap_or(true) {
         return None;
     }
     let handle: isize = focused.get_native_window_handle().ok()?.into();

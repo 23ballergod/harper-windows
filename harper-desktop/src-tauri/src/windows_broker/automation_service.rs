@@ -404,6 +404,10 @@ fn text_element_for_window(
 /// readable document, so without this check a page with nothing focused gets every button and
 /// label underlined.
 fn is_editable_text(element: &UIElement) -> bool {
+    // Never read password boxes.
+    if element.is_password().unwrap_or(true) {
+        return false;
+    }
     // Browser address bars hold web addresses, not writing.
     if element
         .get_classname()
