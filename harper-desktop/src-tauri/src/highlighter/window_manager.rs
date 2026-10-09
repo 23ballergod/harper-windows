@@ -160,8 +160,14 @@ impl WindowManagerApp {
             self.render_state.set_lints(lints);
         }
 
-        for window in &self.windows {
-            window.request_redraw();
+        // Hide the overlay while there is nothing to draw, so a window that is always on top
+        // never sits over full-screen games or other apps that aren't being checked.
+        let visible = self.render_state.has_lints();
+        for window in &mut self.windows {
+            window.set_shown(visible);
+            if visible {
+                window.request_redraw();
+            }
         }
     }
 

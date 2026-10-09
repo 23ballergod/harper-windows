@@ -107,6 +107,10 @@ impl RenderState {
         }
     }
 
+    pub fn has_lints(&self) -> bool {
+        !self.lints().is_empty()
+    }
+
     fn lints(&self) -> &[ActionableLint] {
         self.last_lints.as_deref().unwrap_or_default()
     }

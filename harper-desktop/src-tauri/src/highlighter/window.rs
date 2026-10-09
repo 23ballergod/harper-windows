@@ -23,6 +23,7 @@ pub struct Window {
     egui_state: egui_winit::State,
     painter: Painter,
     viewport_id: egui::ViewportId,
+    shown: bool,
 }
 
 impl Window {
@@ -97,11 +98,20 @@ impl Window {
             egui_state,
             painter,
             viewport_id,
+            shown: true,
         })
     }
 
     pub fn id(&self) -> WindowId {
         self.inner.id()
+    }
+
+    /// Shows or hides the overlay, only telling Windows when that changes.
+    pub fn set_shown(&mut self, shown: bool) {
+        if self.shown != shown {
+            self.shown = shown;
+            show_without_focus(&self.inner, shown);
+        }
     }
 
     pub fn request_redraw(&self) {
@@ -277,3 +287,29 @@ fn keep_from_taking_focus(window: &WinitWindow) {
 
 #[cfg(not(target_os = "windows"))]
 fn keep_from_taking_focus(_window: &WinitWindow) {}
+
+/// Shows or hides the overlay without ever activating it, so the app being typed in keeps focus.
+#[cfg(target_os = "windows")]
+fn show_without_focus(window: &WinitWindow, shown: bool) {
+    use std::ffi::c_void;
+
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{SW_HIDE, SW_SHOWNOACTIVATE, ShowWindow};
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    let Ok(handle) = window.window_handle() else {
+        return;
+    };
+    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
+        return;
+    };
+    let hwnd = HWND(handle.hwnd.get() as *mut c_void);
+    unsafe {
+        let _ = ShowWindow(hwnd, if shown { SW_SHOWNOACTIVATE } else { SW_HIDE });
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn show_without_focus(window: &WinitWindow, shown: bool) {
+    window.set_visible(shown);
+}

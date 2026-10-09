@@ -414,6 +414,9 @@ if ($chrome) {
     foreach ($color in $lintColors) { $marked += (CountColor $shot $win.L $win.T $win.R $win.B $color)[0] }
     Log "- Underline-colored pixels on the page: $marked (front window: '$(ForegroundTitle)')"
     if ($marked -gt 30) { $problems.Add("text on a web page outside any text box got underlined ($marked pixels)") }
+    $overlays = [Win]::Describe((Pids $dir)) | Where-Object { $_ -match 'topmost=True' }
+    Log "- Overlay windows showing with nothing to check: $(@($overlays).Count)"
+    if (@($overlays).Count -gt 0) { $problems.Add("the overlay stayed on screen with nothing to check (it should hide, e.g. over games)") }
 } else {
     Log "- Chrome is not installed on this machine"
 }
