@@ -38,7 +38,25 @@ public static class Win {
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] public static extern IntPtr GetWindowLongPtr(IntPtr h, int i);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+    [DllImport("user32.dll")] public static extern void mouse_event(uint flags, int dx, int dy, uint data, UIntPtr extra);
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
+
+    // Pixels within `tolerance` of a color inside a box of a 32-bit BGRA screenshot:
+    // { count, x and y of the first one (top to bottom), sum of x, sum of y }.
+    public static long[] Scan(byte[] d, int stride, int w, int h, int x0, int y0, int x1, int y1, int r, int g, int b, int tolerance) {
+        long count = 0, fx = -1, fy = -1, sx = 0, sy = 0;
+        for (int y = Math.Max(0, y0); y < Math.Min(h, y1); y++) {
+            for (int x = Math.Max(0, x0); x < Math.Min(w, x1); x++) {
+                int i = y * stride + x * 4;
+                if (Math.Abs(d[i + 2] - r) <= tolerance && Math.Abs(d[i + 1] - g) <= tolerance && Math.Abs(d[i] - b) <= tolerance) {
+                    if (count == 0) { fx = x; fy = y; }
+                    count++; sx += x; sy += y;
+                }
+            }
+        }
+        return new long[] { count, fx, fy, sx, sy };
+    }
 
     // Visible top-level windows owned by any of the given processes.
     public static List<string> Describe(HashSet<uint> pids) {
@@ -231,6 +249,108 @@ function UnderlinePixels([string] $with, [string] $without, $rect) {
     $count
 }
 
+# The screen as raw 32-bit BGRA pixels, for [Win]::Scan.
+function ScreenPixels {
+    $vs = [System.Windows.Forms.SystemInformation]::VirtualScreen
+    $bmp = New-Object System.Drawing.Bitmap $vs.Width, $vs.Height, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $g.CopyFromScreen($vs.Left, $vs.Top, 0, 0, $bmp.Size)
+    $g.Dispose()
+    $data = $bmp.LockBits((New-Object System.Drawing.Rectangle 0, 0, $bmp.Width, $bmp.Height), 'ReadOnly', 'Format32bppArgb')
+    $bytes = New-Object byte[] ($data.Stride * $bmp.Height)
+    [System.Runtime.InteropServices.Marshal]::Copy($data.Scan0, $bytes, 0, $bytes.Length)
+    $stride = $data.Stride
+    $bmp.UnlockBits($data)
+    $bmp.Dispose()
+    [pscustomobject]@{ Bytes = $bytes; Stride = $stride; Width = $vs.Width; Height = $vs.Height; Left = $vs.Left; Top = $vs.Top }
+}
+
+# Pixels of one color inside a box given in screen coordinates.
+function CountColor($shot, [int] $l, [int] $t, [int] $r, [int] $b, $color, [int] $tolerance = 10) {
+    [Win]::Scan($shot.Bytes, $shot.Stride, $shot.Width, $shot.Height, $l - $shot.Left, $t - $shot.Top, $r - $shot.Left, $b - $shot.Top, $color[0], $color[1], $color[2], $tolerance)
+}
+
+function ForegroundTitle {
+    $title = New-Object System.Text.StringBuilder 256
+    [void][Win]::GetWindowText([Win]::GetForegroundWindow(), $title, 256)
+    $title.ToString()
+}
+
+# Underline colors, as in lint_kind_color.rs. Underlines are drawn fully opaque in these colors, and
+# the suggestion card's main button is filled with the same color.
+$lintColors = @(
+    @(0x22, 0x8B, 0x22), @(0x8B, 0x45, 0x13), @(0x54, 0x0D, 0x6E), @(0xFF, 0x8C, 0x00), @(0x0E, 0xAD, 0x69),
+    @(0x7D, 0x3C, 0x98), @(0x9B, 0x59, 0xB6), @(0xC7, 0x15, 0x85), @(0x3B, 0xCE, 0xAC), @(0x00, 0x8B, 0x8B),
+    @(0xD4, 0x85, 0x0F), @(0x2E, 0x8B, 0x57), @(0x46, 0x82, 0xB4), @(0xC0, 0x61, 0xCB), @(0x00, 0xA6, 0x7C),
+    @(0xEE, 0x42, 0x66), @(0xFF, 0xD2, 0x3F), @(0xFF, 0x6B, 0x35), @(0x1E, 0x90, 0xFF), @(0x4D, 0x4D, 0xFF)
+)
+
+# Rests the mouse on the first underline in a window the way a user would, checks that a solid
+# suggestion card opens without taking focus from the app, clicks the card's main suggestion and
+# checks that the text changed.
+function SuggestionCardTest([string] $label, [string] $title) {
+    [void]$shell.AppActivate($title)
+    Start-Sleep 2
+    $win = ForegroundRect
+    $shot = ScreenPixels
+    $underline = $null
+    foreach ($color in $lintColors) {
+        $s = CountColor $shot $win.L $win.T $win.R $win.B $color
+        if ($s[0] -ge 6 -and (-not $underline -or $s[2] + $shot.Top -lt $underline.Y)) {
+            $underline = [pscustomobject]@{ Color = $color; X = [int]$s[1] + $shot.Left; Y = [int]$s[2] + $shot.Top; Pixels = $s[0] }
+        }
+    }
+    if (-not $underline) {
+        Log "- No underline found to hover over"
+        $problems.Add("no underline in $label to open a suggestion card from")
+        return
+    }
+    $hex = ($underline.Color | ForEach-Object { '{0:X2}' -f $_ }) -join ''
+    Log "- First underline: #$hex at $($underline.X),$($underline.Y)"
+
+    # Card area: below the underline, as wide as the card (popup_rect_for_lint in render_state.rs).
+    $cardL = $underline.X - 40; $cardR = $underline.X + 480; $cardT = $underline.Y + 4; $cardB = $underline.Y + 240
+    $before = (CountColor $shot $cardL $cardT $cardR $cardB $underline.Color)[0]
+
+    [void][Win]::SetCursorPos($underline.X + 4, $underline.Y - 6)
+    Start-Sleep 2
+    [void](Shot '6-chrome-card')
+    $shot = ScreenPixels
+    $button = CountColor $shot $cardL $cardT $cardR $cardB $underline.Color
+    $added = $button[0] - $before
+    Log "- After resting the mouse on it for 2 s: $added solid #$hex pixels below it (the card's main button is about 3000)"
+    $focus = ForegroundTitle
+    Log "- Window in front: '$focus'"
+    if ($added -lt 800) {
+        $problems.Add("resting the mouse on an underline in $label didn't open a solid, readable suggestion card")
+        [void][Win]::SetCursorPos(0, 0)
+        return
+    }
+
+    $cx = [int]($button[3] / $button[0]) + $shot.Left
+    $cy = [int]($button[4] / $button[0]) + $shot.Top
+    [void][Win]::SetCursorPos($cx, $cy)
+    Start-Sleep -Milliseconds 300
+    [Win]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 80
+    [Win]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep 2
+    $focus = ForegroundTitle
+    Log "- Clicked the main suggestion at $cx,$cy; window in front: '$focus'"
+    if ($focus -notlike "*$title*") { $problems.Add("clicking the suggestion card took focus away from $label (front window: '$focus')") }
+    [void][Win]::SetCursorPos(0, 0)
+
+    [void]$shell.AppActivate($title)
+    Start-Sleep 1
+    $shell.SendKeys('^a')
+    $shell.SendKeys('^c')
+    Start-Sleep 1
+    $after = (Get-Clipboard -Raw -ErrorAction SilentlyContinue)
+    $shell.SendKeys('{END}')
+    Log "- Text after the click: '$after'"
+    if (-not $after -or $after.Trim() -eq $sentence) { $problems.Add("clicking the main suggestion didn't change the text in $label") }
+}
+
 Log ""
 Log "## Typing into Notepad"
 $np = Start-Process notepad -PassThru
@@ -249,6 +369,26 @@ if ($chrome) {
     Start-Process $chrome -ArgumentList @("--user-data-dir=$chromeProfile", '--no-first-run', '--no-default-browser-check', '--new-window', '--window-size=900,600', '--window-position=40,40', $url) | Out-Null
     Start-Sleep 10
     TypeInto 'Chrome' 'Shah test' '5-chrome-typed' $true
+    Log ""
+    Log "## Suggestion card in Chrome"
+    SuggestionCardTest 'Chrome' 'Shah test'
+
+    # A page with mistakes but no text box in focus, like the Claude app's sidebar and buttons, must
+    # not be checked: only text the user is typing gets underlines.
+    Log ""
+    Log "## Web page text outside a text box"
+    $page = "<title>Shah page</title><body style='font:22px sans-serif'><p>This is an test. Their going to the store.</p><button>Their going to the store</button><p>She go to school every day.</p></body>"
+    Start-Process $chrome -ArgumentList @("--user-data-dir=$chromeProfile", '--new-window', '--window-size=900,600', '--window-position=60,60', ('data:text/html,' + [uri]::EscapeDataString($page))) | Out-Null
+    Start-Sleep 6
+    [void]$shell.AppActivate('Shah page')
+    Start-Sleep 10
+    $win = ForegroundRect
+    $shot = ScreenPixels
+    [void](Shot '7-chrome-page')
+    $marked = 0
+    foreach ($color in $lintColors) { $marked += (CountColor $shot $win.L $win.T $win.R $win.B $color)[0] }
+    Log "- Underline-colored pixels on the page: $marked (front window: '$(ForegroundTitle)')"
+    if ($marked -gt 30) { $problems.Add("text on a web page outside any text box got underlined ($marked pixels)") }
 } else {
     Log "- Chrome is not installed on this machine"
 }

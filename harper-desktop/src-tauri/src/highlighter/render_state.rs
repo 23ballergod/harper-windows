@@ -255,6 +255,9 @@ fn render_lint_card(
     egui::Area::new(egui::Id::new("harper-lint-card"))
         .order(egui::Order::Foreground)
         .fixed_pos(popup_rect.min)
+        // Show the card at full strength straight away; the overlay is transparent, so a card
+        // caught mid-fade is see-through and hard to read.
+        .fade_in(false)
         .show(ui.ctx(), |ui| {
             let mut action = None;
 

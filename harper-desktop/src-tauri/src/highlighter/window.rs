@@ -26,11 +26,7 @@ pub struct Window {
 }
 
 impl Window {
-    pub async fn new(
-        event_loop: &ActiveEventLoop,
-        monitor: MonitorHandle,
-        context: egui::Context,
-    ) -> Result<Self, Error> {
+    pub async fn new(event_loop: &ActiveEventLoop, monitor: MonitorHandle) -> Result<Self, Error> {
         let position = monitor.position();
         let size = monitor.size();
         let attributes = WinitWindow::default_attributes()
@@ -57,7 +53,13 @@ impl Window {
         window.set_outer_position(PhysicalPosition::new(position.x, position.y));
         let _ = window.request_inner_size(PhysicalSize::new(size.width, size.height));
         window.set_cursor_hittest(false)?;
-        let viewport_id = egui::ViewportId::from_hash_of(window.id());
+        keep_from_taking_focus(&window);
+        // Each window gets its own egui context, run as egui's standard root viewport, so the
+        // popup and click state it keeps between frames belongs to this window alone.
+        let context = egui::Context::default();
+        // The suggestion card is designed light; keep its text dark when Windows uses dark mode.
+        context.options_mut(|options| options.theme_preference = egui::ThemePreference::Light);
+        let viewport_id = egui::ViewportId::ROOT;
 
         let egui_state = egui_winit::State::new(
             context.clone(),
@@ -113,6 +115,8 @@ impl Window {
     /// is over an interactive highlight or popup.
     pub fn set_cursor_hittest(&self, enabled: bool) -> Result<(), Error> {
         self.inner.set_cursor_hittest(enabled)?;
+        // winit rebuilds the window's extended style here, dropping the no-activate flag.
+        keep_from_taking_focus(&self.inner);
 
         Ok(())
     }
@@ -242,3 +246,34 @@ async fn supports_transparency(setup: &WgpuSetupCreateNew, window: Arc<WinitWind
 
     transparent
 }
+
+/// Stops clicks on the overlay from activating it. Otherwise clicking an underline takes focus away
+/// from the app being typed in, which makes the checker stop checking that app and close the popup.
+#[cfg(target_os = "windows")]
+fn keep_from_taking_focus(window: &WinitWindow) {
+    use std::ffi::c_void;
+
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GetWindowLongPtrW, SetWindowLongPtrW, WS_EX_NOACTIVATE,
+    };
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    let Ok(handle) = window.window_handle() else {
+        return;
+    };
+    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
+        return;
+    };
+    let hwnd = HWND(handle.hwnd.get() as *mut c_void);
+    let no_activate = WS_EX_NOACTIVATE.0 as isize;
+    unsafe {
+        let style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+        if style & no_activate == 0 {
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style | no_activate);
+        }
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn keep_from_taking_focus(_window: &WinitWindow) {}

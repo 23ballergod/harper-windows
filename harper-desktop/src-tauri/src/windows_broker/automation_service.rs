@@ -8,7 +8,9 @@ use crate::rect::Rect;
 use crate::windows_broker::get_focused_monitor_scale;
 use harper_core::{Span, linting::Suggestion};
 use is_macro::Is;
-use uiautomation::types::{Handle, TextPatternRangeEndpoint, TextUnit, TreeScope, UIProperty};
+use uiautomation::types::{
+    ControlType, Handle, TextPatternRangeEndpoint, TextUnit, TreeScope, UIProperty,
+};
 use uiautomation::variants::Variant;
 use uiautomation::{
     UIAutomation, UIElement,
@@ -365,6 +367,9 @@ fn text_element_for_window(
     );
 
     for element in candidates {
+        if !is_editable_text(&element) {
+            continue;
+        }
         let Ok(text) = get_text(&element) else {
             continue;
         };
@@ -378,6 +383,27 @@ fn text_element_for_window(
         uiautomation::errors::ERR_NOTFOUND,
         "no text element found",
     ))
+}
+
+/// Whether `element` is a box the user types into, rather than a whole page or read-only text.
+///
+/// Browsers and Electron apps (Chrome, Edge, the Claude app, Firefox) expose every web page as a
+/// readable document, so without this check a page with nothing focused gets every button and
+/// label underlined.
+fn is_editable_text(element: &UIElement) -> bool {
+    if let Ok(value) = element.get_pattern::<UIValuePattern>()
+        && let Ok(read_only) = value.is_readonly()
+    {
+        return !read_only;
+    }
+    match element.get_control_type() {
+        Ok(ControlType::Edit) => true,
+        Ok(ControlType::Document) => !matches!(
+            element.get_framework_id().unwrap_or_default().as_str(),
+            "Chrome" | "Gecko"
+        ),
+        _ => false,
+    }
 }
 
 /// Whether two windows belong to the same process.
@@ -406,14 +432,25 @@ fn describe_focused_element(automation: &UIAutomation) -> String {
     let Ok(focused) = automation.get_focused_element() else {
         return "Windows reports no focused element".to_string();
     };
+    // Web apps can have class lists hundreds of characters long.
+    let class: String = focused
+        .get_classname()
+        .unwrap_or_default()
+        .chars()
+        .take(60)
+        .collect();
     format!(
-        "focused element is a {:?} (class {:?}, framework {:?}); text pattern: {}",
+        "focused element is a {:?} (class {class:?}, framework {:?}); text pattern: {}; editable: {}",
         focused.get_control_type().ok(),
-        focused.get_classname().unwrap_or_default(),
         focused.get_framework_id().unwrap_or_default(),
         match focused.get_pattern::<UITextPattern>() {
             Ok(_) => "yes".to_string(),
             Err(error) => format!("no ({error})"),
+        },
+        if is_editable_text(&focused) {
+            "yes"
+        } else {
+            "no"
         }
     )
 }
