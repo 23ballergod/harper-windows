@@ -352,6 +352,19 @@ fn text_element_for_window(
         let inner = focused.find_first(TreeScope::Descendants, &text_condition);
         candidates.push(focused);
         candidates.extend(inner);
+        // Trust what Windows says has focus. Searching the window for a text box that claims
+        // focus can find one the user already left (Chrome is slow to update that flag), which
+        // kept its underlines on screen after clicking elsewhere on the page.
+        return candidates
+            .into_iter()
+            .filter(is_editable_text)
+            .find(|element| {
+                get_text(element)
+                    .is_ok_and(|text| expected_text.is_none_or(|expected| expected == text))
+            })
+            .ok_or_else(|| {
+                Error::new(uiautomation::errors::ERR_NOTFOUND, "no text element found")
+            });
     }
 
     let root = automation.element_from_handle(Handle::from(window))?;
@@ -391,6 +404,13 @@ fn text_element_for_window(
 /// readable document, so without this check a page with nothing focused gets every button and
 /// label underlined.
 fn is_editable_text(element: &UIElement) -> bool {
+    // Browser address bars hold web addresses, not writing.
+    if element
+        .get_classname()
+        .is_ok_and(|class| class.starts_with("Omnibox"))
+    {
+        return false;
+    }
     if let Ok(value) = element.get_pattern::<UIValuePattern>()
         && let Ok(read_only) = value.is_readonly()
     {

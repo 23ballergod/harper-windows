@@ -380,6 +380,24 @@ if ($chrome) {
     Log "## Suggestion card in Chrome"
     SuggestionCardTest 'Chrome' 'Shah test'
 
+    # Clicking the page outside the text box must clear its underlines straight away.
+    Log ""
+    Log "## Clicking out of the Chrome text box"
+    [void]$shell.AppActivate('Shah test')
+    Start-Sleep 1
+    $win = ForegroundRect
+    [void][Win]::SetCursorPos($win.L + 400, $win.B - 60)
+    [Win]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 80
+    [Win]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+    [void][Win]::SetCursorPos(0, 0)
+    Start-Sleep 3
+    $shot = ScreenPixels
+    $left = 0
+    foreach ($color in $lintColors) { $left += (CountColor $shot $win.L $win.T $win.R $win.B $color)[0] }
+    Log "- Underline-colored pixels 3 s after clicking the page: $left"
+    if ($left -gt 30) { $problems.Add("underlines stayed after clicking out of the Chrome text box ($left pixels)") }
+
     # A page with mistakes but no text box in focus, like the Claude app's sidebar and buttons, must
     # not be checked: only text the user is typing gets underlines.
     Log ""
