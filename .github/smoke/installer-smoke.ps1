@@ -340,13 +340,20 @@ function SuggestionCardTest([string] $label, [string] $title) {
     if ($focus -notlike "*$title*") { $problems.Add("clicking the suggestion card took focus away from $label (front window: '$focus')") }
     [void][Win]::SetCursorPos(0, 0)
 
-    [void]$shell.AppActivate($title)
-    Start-Sleep 1
-    $shell.SendKeys('^a')
-    $shell.SendKeys('^c')
-    Start-Sleep 1
-    $after = (Get-Clipboard -Raw -ErrorAction SilentlyContinue)
-    $shell.SendKeys('{END}')
+    # Copy the text box's contents; the clipboard can be slow or busy on the runner, so try a few times.
+    $after = $null
+    for ($attempt = 1; $attempt -le 4 -and -not $after; $attempt++) {
+        Set-Clipboard -Value ' ' -ErrorAction SilentlyContinue
+        [void]$shell.AppActivate($title)
+        Start-Sleep 1
+        $shell.SendKeys('^a')
+        Start-Sleep -Milliseconds 300
+        $shell.SendKeys('^c')
+        Start-Sleep 1
+        $after = (Get-Clipboard -Raw -ErrorAction SilentlyContinue)
+        if ($after) { $after = $after.Trim() }
+        $shell.SendKeys('{END}')
+    }
     Log "- Text after the click: '$after'"
     if (-not $after -or $after.Trim() -eq $sentence) { $problems.Add("clicking the main suggestion didn't change the text in $label") }
 }
