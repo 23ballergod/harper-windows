@@ -34,7 +34,13 @@ mod win32_edit;
 pub struct WindowsBroker {
     service: Arc<Mutex<AutomationService>>,
     is_integration_enabled: Box<dyn FnMut(&str) -> bool + Send>,
+    /// Reads in a row that found no text box in focus.
+    missed_reads: u32,
 }
+
+/// Reads in a row without a text box in focus before the underlines are cleared. A single failed
+/// read can be a hiccup while the app is busy; clearing straight away would make underlines flicker.
+const MISSED_READS_BEFORE_CLEARING: u32 = 3;
 
 impl WindowsBroker {
     /// Creates a broker with an app policy that may register newly encountered executable paths.
@@ -43,6 +49,7 @@ impl WindowsBroker {
         Self {
             service: Arc::new(Mutex::new(AutomationService::create_and_start())),
             is_integration_enabled: Box::new(is_integration_enabled),
+            missed_reads: 0,
         }
     }
 
@@ -118,8 +125,12 @@ impl OsBroker for WindowsBroker {
                 "text",
                 "no readable text box has keyboard focus".to_string(),
             );
-            return None;
+            // Once focus has really moved off the text box (to a button, a web page, another
+            // field), its underlines must go rather than float over whatever is there now.
+            self.missed_reads += 1;
+            return (self.missed_reads >= MISSED_READS_BEFORE_CLEARING).then(Vec::new);
         };
+        self.missed_reads = 0;
         if text.len() > 16_000 {
             note_change("text", "text is too long to check".to_string());
             return Some(Vec::new());
