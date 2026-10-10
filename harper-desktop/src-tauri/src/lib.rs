@@ -130,6 +130,8 @@ pub fn run() {
 pub fn run_tauri() {
     #[cfg(windows)]
     if !claim_single_instance() {
+        // Already running in the tray: ask that copy to open its settings instead.
+        signal_show_settings();
         return;
     }
 
@@ -198,6 +200,8 @@ pub fn run_tauri() {
                 .plugin(tauri_plugin_updater::Builder::new().build())?;
 
             set_up_tray_menu(app.handle())?;
+            #[cfg(windows)]
+            listen_for_show_settings(app.handle().clone());
             warm_app_search_cache(app.handle().clone());
             desktop_updater::start_auto_updates(app.handle().clone());
 
@@ -550,6 +554,47 @@ fn apply_highlighter_config(
     }
     *debounce_ms.borrow_mut() = config.debounce_ms;
     *linter.borrow_mut() = linter_config;
+}
+
+#[cfg(windows)]
+const SHOW_SETTINGS_EVENT: ::windows::core::PCWSTR =
+    ::windows::core::w!("Local\\ShahReWriter.ShowSettings");
+
+/// Opens Settings whenever a second launch signals the running copy.
+#[cfg(windows)]
+fn listen_for_show_settings(app: tauri::AppHandle) {
+    use ::windows::Win32::System::Threading::{CreateEventW, INFINITE, WaitForSingleObject};
+
+    // SAFETY: creates an auto-reset named event; the handle lives for the whole process.
+    let Ok(event) = (unsafe { CreateEventW(None, false, false, SHOW_SETTINGS_EVENT) }) else {
+        return;
+    };
+    let event = event.0 as isize;
+    std::thread::spawn(move || {
+        loop {
+            let handle = ::windows::Win32::Foundation::HANDLE(event as *mut std::ffi::c_void);
+            // SAFETY: waits on the event handle created above.
+            unsafe { WaitForSingleObject(handle, INFINITE) };
+            let app_for_main = app.clone();
+            let _ = app.run_on_main_thread(move || {
+                let _ = windows::show_settings_window(&app_for_main);
+            });
+        }
+    });
+}
+
+#[cfg(windows)]
+fn signal_show_settings() {
+    use ::windows::Win32::Foundation::CloseHandle;
+    use ::windows::Win32::System::Threading::{EVENT_MODIFY_STATE, OpenEventW, SetEvent};
+
+    // SAFETY: opens the running copy's named event, signals it and closes our handle.
+    unsafe {
+        if let Ok(event) = OpenEventW(EVENT_MODIFY_STATE, false, SHOW_SETTINGS_EVENT) {
+            let _ = SetEvent(event);
+            let _ = CloseHandle(event);
+        }
+    }
 }
 
 /// Makes sure only one copy of the app runs. A second launch quits right away, so two copies never
