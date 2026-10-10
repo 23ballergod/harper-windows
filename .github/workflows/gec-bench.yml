@@ -19,12 +19,14 @@ jobs:
           - { id: pszemraj/flan-t5-large-grammar-synthesis, name: flan-t5-large-gs }
     steps:
       - uses: actions/checkout@v4
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install transformers sentencepiece accelerate huggingface_hub
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install transformers sentencepiece protobuf accelerate huggingface_hub
       - run: |
-          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} tricky
-          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} tricky --after
-          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} jfleg
-      - run: |
+          set -o pipefail; L=gec-bench/predictions/${{ matrix.name }}.log
+          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} tricky 2>&1 | tail -40 > $L
+          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} tricky --after 2>&1 | tail -40 >> $L
+          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} jfleg 2>&1 | tail -40 >> $L
+      - if: always()
+        run: |
           git config user.name gec-bench-bot; git config user.email actions@github.com
           git add gec-bench/predictions; git commit -m "gec-bench: ${{ matrix.name }} predictions"
           for i in 1 2 3 4 5; do git pull --rebase -q origin gec-bench && git push origin HEAD:gec-bench && break; sleep $((RANDOM%20+5)); done
