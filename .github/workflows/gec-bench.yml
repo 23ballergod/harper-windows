@@ -1,0 +1,30 @@
+name: gec-bench
+on:
+  push:
+    branches: [gec-bench]
+    paths: [gec-bench/run_gec.py, .github/workflows/gec-bench.yml]
+  workflow_dispatch:
+permissions: { contents: write }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { id: grammarly/coedit-large, name: coedit-large }
+          - { id: grammarly/coedit-xl, name: coedit-xl }
+          - { id: vennify/t5-base-grammar-correction, name: t5-base-gec }
+          - { id: pszemraj/flan-t5-large-grammar-synthesis, name: flan-t5-large-gs }
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install transformers sentencepiece accelerate huggingface_hub
+      - run: |
+          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} tricky
+          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} tricky --after
+          python gec-bench/run_gec.py ${{ matrix.id }} ${{ matrix.name }} jfleg
+      - run: |
+          git config user.name gec-bench-bot; git config user.email actions@github.com
+          git add gec-bench/predictions; git commit -m "gec-bench: ${{ matrix.name }} predictions"
+          for i in 1 2 3 4 5; do git pull --rebase -q origin gec-bench && git push origin HEAD:gec-bench && break; sleep $((RANDOM%20+5)); done

@@ -1,0 +1,288 @@
+{"id":"tricky-000","output":"They're going to the store after work.","ms":36.36251999999968,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-001","output":"I left my keys over their.","ms":5.018011999999999,"flagged":0,"rules":[]}
+{"id":"tricky-002","output":"The kids forgot their backpacks.","ms":6.878164000000197,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-003","output":"Its going to rain later today.","ms":4.050270999999611,"flagged":0,"rules":[]}
+{"id":"tricky-004","output":"The company changed its logo.","ms":6.237025999999787,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-005","output":"Your welcome to join us for dinner.","ms":3.7400150000003123,"flagged":0,"rules":[]}
+{"id":"tricky-006","output":"Is this you're laptop?","ms":3.0977469999997993,"flagged":0,"rules":[]}
+{"id":"tricky-007","output":"She is taller than her brother.","ms":7.297935999999936,"flagged":1,"rules":["Miscellaneous"]}
+{"id":"tricky-008","output":"Finish your homework, than you can play.","ms":5.452232999999978,"flagged":0,"rules":[]}
+{"id":"tricky-009","output":"The new policy will affect everyone.","ms":6.296620000000075,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-010","output":"The medicine had a strange effect on him.","ms":7.46422100000018,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-011","output":"Don't loose your ticket.","ms":3.278299000000061,"flagged":0,"rules":[]}
+{"id":"tricky-012","output":"These jeans are to lose around the waist.","ms":6.843699000000015,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-013","output":"I would have called you if I knew.","ms":7.9054809999997815,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-014","output":"You should have told me earlier.","ms":5.945535000000291,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-015","output":"We could have won that game.","ms":5.854694999999992,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-016","output":"who's car is parked outside?","ms":5.642302999999629,"flagged":1,"rules":["Capitalization"]}
+{"id":"tricky-017","output":"Whose coming to the party tonight?","ms":3.4768639999997504,"flagged":0,"rules":[]}
+{"id":"tricky-018","output":"I want to come to.","ms":3.4604930000000422,"flagged":0,"rules":[]}
+{"id":"tricky-019","output":"That movie was to long.","ms":3.226325999999972,"flagged":0,"rules":[]}
+{"id":"tricky-020","output":"Everyone accept Tom was invited.","ms":3.2326160000002346,"flagged":0,"rules":[]}
+{"id":"tricky-021","output":"Please except my apology.","ms":2.9449079999999412,"flagged":0,"rules":[]}
+{"id":"tricky-022","output":"I need some peace and quite.","ms":3.4637769999999364,"flagged":0,"rules":[]}
+{"id":"tricky-023","output":"The dog wagged its tail.","ms":5.523878999999852,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-024","output":"We went passed the old school.","ms":3.4565169999996215,"flagged":0,"rules":[]}
+{"id":"tricky-025","output":"I seen him at the mall yesterday.","ms":3.6807040000003326,"flagged":0,"rules":[]}
+{"id":"tricky-026","output":"Can you borrow me a pencil?","ms":3.387580000000071,"flagged":0,"rules":[]}
+{"id":"tricky-027","output":"The principle of the school gave a speech.","ms":3.926444000000174,"flagged":0,"rules":[]}
+{"id":"tricky-028","output":"I'm going to lay down for a nap.","ms":4.01836400000002,"flagged":0,"rules":[]}
+{"id":"tricky-029","output":"Please advice me on what to do.","ms":3.7440990000000056,"flagged":0,"rules":[]}
+{"id":"tricky-030","output":"She gave me some good advice.","ms":6.029165999999805,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-031","output":"We need to breath slowly.","ms":3.247179999999844,"flagged":0,"rules":[]}
+{"id":"tricky-032","output":"Take a deep breath.","ms":5.024159999999938,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-033","output":"I could care less what they think.","ms":3.7342360000002373,"flagged":0,"rules":[]}
+{"id":"tricky-034","output":"This is a moot point now.","ms":6.268681999999899,"flagged":1,"rules":["Eggcorn"]}
+{"id":"tricky-035","output":"For all intents and purposes, the project is done.","ms":8.40004399999998,"flagged":1,"rules":["Nonstandard"]}
+{"id":"tricky-036","output":"He made an illicit comment that drew a reaction.","ms":4.19069300000001,"flagged":0,"rules":[]}
+{"id":"tricky-037","output":"The weather was nice, so we went to the beach.","ms":5.395320000000083,"flagged":0,"rules":[]}
+{"id":"tricky-038","output":"Then we compared it to the older version.","ms":3.8741409999997813,"flagged":0,"rules":[]}
+{"id":"tricky-039","output":"It's been a long week, and its end can't come soon enough.","ms":7.157038999999713,"flagged":0,"rules":[]}
+{"id":"tricky-040","output":"The stationary bike is in the garage.","ms":3.7159669999996368,"flagged":0,"rules":[]}
+{"id":"tricky-041","output":"I need new stationary for my letters.","ms":3.8007980000002135,"flagged":0,"rules":[]}
+{"id":"tricky-042","output":"She complemented me on my presentation.","ms":4.051299000000199,"flagged":0,"rules":[]}
+{"id":"tricky-043","output":"The wine complements the meal nicely.","ms":3.356572000000142,"flagged":0,"rules":[]}
+{"id":"tricky-044","output":"I'm already to go when you are.","ms":3.6790209999999206,"flagged":0,"rules":[]}
+{"id":"tricky-045","output":"We were at the park all afternoon.","ms":6.467887000000246,"flagged":1,"rules":["Typo"]}
+{"id":"tricky-046","output":"We're the closest gas station?","ms":8.182424999999967,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-047","output":"I'll meet you there at noon.","ms":6.093065999999908,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-048","output":"Your going to love this place.","ms":3.3720409999996264,"flagged":0,"rules":[]}
+{"id":"tricky-049","output":"Let me know weather you can make it.","ms":3.867032999999992,"flagged":0,"rules":[]}
+{"id":"tricky-050","output":"I herd the news this morning.","ms":3.387753999999859,"flagged":0,"rules":[]}
+{"id":"tricky-051","output":"She road her bike to work.","ms":3.5583450000003722,"flagged":0,"rules":[]}
+{"id":"tricky-052","output":"He pasts the test with flying colors.","ms":6.798505000000205,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-053","output":"It's a really good idea.","ms":5.493045000000166,"flagged":1,"rules":["Punctuation"]}
+{"id":"tricky-054","output":"There are three reasons for this.","ms":6.098304000000098,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-055","output":"He goes to school every day.","ms":6.1170539999998255,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-056","output":"She doesn't like coffee.","ms":5.041210000000319,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-057","output":"The list of items are on the table.","ms":4.1107059999999365,"flagged":0,"rules":[]}
+{"id":"tricky-058","output":"Each of the students have a laptop.","ms":3.595571000000291,"flagged":0,"rules":[]}
+{"id":"tricky-059","output":"My friends was waiting outside.","ms":3.227469999999812,"flagged":0,"rules":[]}
+{"id":"tricky-060","output":"There is many reasons to stay.","ms":3.44428999999991,"flagged":0,"rules":[]}
+{"id":"tricky-061","output":"Neither of them want to go.","ms":3.3955630000000383,"flagged":0,"rules":[]}
+{"id":"tricky-062","output":"The data shows a clear pattern.","ms":3.347595000000183,"flagged":0,"rules":[]}
+{"id":"tricky-063","output":"Everyone in the office were surprised.","ms":3.307368000000224,"flagged":0,"rules":[]}
+{"id":"tricky-064","output":"The results of the study shows a clear trend.","ms":4.964157000000341,"flagged":0,"rules":[]}
+{"id":"tricky-065","output":"It make no sense to me.","ms":3.28115600000001,"flagged":0,"rules":[]}
+{"id":"tricky-066","output":"They were late again.","ms":4.739344000000074,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-067","output":"One of my friends live in Chicago.","ms":3.614596999999776,"flagged":0,"rules":[]}
+{"id":"tricky-068","output":"The quality of the photos are amazing.","ms":3.2868219999995745,"flagged":0,"rules":[]}
+{"id":"tricky-069","output":"My brother and my sister is coming.","ms":3.2230110000000423,"flagged":0,"rules":[]}
+{"id":"tricky-070","output":"Does she knows the answer?","ms":2.975560000000314,"flagged":0,"rules":[]}
+{"id":"tricky-071","output":"He doesn't wants to leave.","ms":2.710186999999678,"flagged":0,"rules":[]}
+{"id":"tricky-072","output":"The news are on at six.","ms":3.1181649999998626,"flagged":0,"rules":[]}
+{"id":"tricky-073","output":"Here is the documents you asked for.","ms":3.3889179999996486,"flagged":0,"rules":[]}
+{"id":"tricky-074","output":"This kind of thing happen all the time.","ms":6.384447000000364,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-075","output":"Neither the manager nor the employees were told.","ms":3.4767870000000585,"flagged":0,"rules":[]}
+{"id":"tricky-076","output":"The number of complaints has dropped.","ms":2.9026489999996556,"flagged":0,"rules":[]}
+{"id":"tricky-077","output":"A number of people have asked about it.","ms":3.4140629999997145,"flagged":0,"rules":[]}
+{"id":"tricky-078","output":"Mathematics is my favorite subject.","ms":2.7663720000000467,"flagged":0,"rules":[]}
+{"id":"tricky-079","output":"None of the cake was left.","ms":2.869100999999773,"flagged":0,"rules":[]}
+{"id":"tricky-080","output":"Everybody needs a break sometimes.","ms":2.6983249999998407,"flagged":0,"rules":[]}
+{"id":"tricky-081","output":"What she says doesn't matter.","ms":2.7272549999997864,"flagged":0,"rules":[]}
+{"id":"tricky-082","output":"The dog and the cat sleeps together.","ms":3.103689999999915,"flagged":0,"rules":[]}
+{"id":"tricky-083","output":"She has been working here for years.","ms":5.409908000000087,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-084","output":"We have a meeting at three.","ms":6.2686720000001515,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-085","output":"I have gone there before.","ms":4.919362999999976,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-086","output":"She has written three books.","ms":4.913673000000017,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-087","output":"He should have taken the bus.","ms":5.364121999999952,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-088","output":"Yesterday I go to the dentist.","ms":3.142605000000003,"flagged":0,"rules":[]}
+{"id":"tricky-089","output":"I am agree with you.","ms":2.786247000000003,"flagged":0,"rules":[]}
+{"id":"tricky-090","output":"She didn't go to class.","ms":5.968249000000014,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-091","output":"I'm looking forward to seeing you.","ms":5.766270999999961,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-092","output":"He made me to wait for an hour.","ms":3.3540830000001733,"flagged":0,"rules":[]}
+{"id":"tricky-093","output":"We were supposed to leave at noon.","ms":5.39608700000008,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-094","output":"The window was broken.","ms":4.428379999999834,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-095","output":"I have drunk too much coffee.","ms":5.206384000000071,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-096","output":"She has eaten already.","ms":4.367263000000094,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-097","output":"He has begun the project.","ms":4.691569000000072,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-098","output":"The bell has rung.","ms":4.418504000000212,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-099","output":"I been working all day.","ms":2.7094160000001466,"flagged":0,"rules":[]}
+{"id":"tricky-100","output":"Can you helping me with this?","ms":2.8638139999998202,"flagged":0,"rules":[]}
+{"id":"tricky-101","output":"I will called you tomorrow.","ms":3.2455199999999422,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-102","output":"She is go to the gym now.","ms":3.184672000000319,"flagged":0,"rules":[]}
+{"id":"tricky-103","output":"They have been live here since 2010.","ms":3.34016900000006,"flagged":0,"rules":[]}
+{"id":"tricky-104","output":"If I was you, I would apologize.","ms":4.139454000000114,"flagged":0,"rules":[]}
+{"id":"tricky-105","output":"I didn't know that.","ms":4.759758000000147,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-106","output":"He caught the ball.","ms":38.15973000000031,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-107","output":"She brought snacks for everyone.","ms":6.210269000000153,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-108","output":"The prices has risen sharply.","ms":5.316013000000112,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-109","output":"I have seen that movie last week.","ms":3.233335000000352,"flagged":0,"rules":[]}
+{"id":"tricky-110","output":"By the time we arrived, the movie had started.","ms":4.4260489999996935,"flagged":0,"rules":[]}
+{"id":"tricky-111","output":"She would have liked to come.","ms":2.9275800000000345,"flagged":0,"rules":[]}
+{"id":"tricky-112","output":"I used to live in Boston.","ms":2.9273880000000645,"flagged":0,"rules":[]}
+{"id":"tricky-113","output":"He suggested that she take the job.","ms":2.994999000000007,"flagged":0,"rules":[]}
+{"id":"tricky-114","output":"I ate an apple for lunch.","ms":4.9648590000001604,"flagged":1,"rules":["Miscellaneous"]}
+{"id":"tricky-115","output":"She is a university student.","ms":4.716772999999648,"flagged":1,"rules":["Miscellaneous"]}
+{"id":"tricky-116","output":"It was a huge mistake.","ms":4.735638000000108,"flagged":1,"rules":["Miscellaneous"]}
+{"id":"tricky-117","output":"He waited for an hour.","ms":4.86384500000031,"flagged":1,"rules":["Miscellaneous"]}
+{"id":"tricky-118","output":"She is honest person.","ms":2.7212070000000494,"flagged":1,"rules":["Miscellaneous"]}
+{"id":"tricky-119","output":"I need to buy new car.","ms":2.873320000000149,"flagged":0,"rules":[]}
+{"id":"tricky-120","output":"Can you close a door behind you?","ms":2.993641999999909,"flagged":0,"rules":[]}
+{"id":"tricky-121","output":"He is best player on the team.","ms":3.183078000000023,"flagged":0,"rules":[]}
+{"id":"tricky-122","output":"I have a lot of homework's.","ms":6.756298999999672,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-123","output":"She gave me many adv ices.","ms":6.35257700000011,"flagged":1,"rules":["Typo"]}
+{"id":"tricky-124","output":"We bought some furniture's.","ms":5.789582999999766,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-125","output":"I need information about the course.","ms":6.077867999999853,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-126","output":"It's a one-time offer.","ms":4.929662999999891,"flagged":1,"rules":["Miscellaneous"]}
+{"id":"tricky-127","output":"He has an MBA from Stanford.","ms":3.1012590000000273,"flagged":0,"rules":[]}
+{"id":"tricky-128","output":"It was a unique experience.","ms":2.679034000000229,"flagged":0,"rules":[]}
+{"id":"tricky-129","output":"That is an FBI building.","ms":2.8664489999996476,"flagged":0,"rules":[]}
+{"id":"tricky-130","output":"She works as an engineer.","ms":2.7878179999997883,"flagged":0,"rules":[]}
+{"id":"tricky-131","output":"I read the whole book.","ms":5.013817000000017,"flagged":1,"rules":["Repetition"]}
+{"id":"tricky-132","output":"This is a problem.","ms":4.637259999999969,"flagged":1,"rules":["Repetition"]}
+{"id":"tricky-133","output":"Less people came than expected.","ms":2.844916999999896,"flagged":0,"rules":[]}
+{"id":"tricky-134","output":"There were less cars on the road today.","ms":3.41341199999988,"flagged":0,"rules":[]}
+{"id":"tricky-135","output":"Much people came to the event.","ms":3.020126999999775,"flagged":0,"rules":[]}
+{"id":"tricky-136","output":"Me and him went to the game.","ms":3.2634539999999106,"flagged":0,"rules":[]}
+{"id":"tricky-137","output":"Between you and I, this is a bad idea.","ms":4.526965999999902,"flagged":0,"rules":[]}
+{"id":"tricky-138","output":"Him and his friends were loud.","ms":3.0385959999998704,"flagged":0,"rules":[]}
+{"id":"tricky-139","output":"Please send the files to John and I.","ms":3.4539749999999003,"flagged":0,"rules":[]}
+{"id":"tricky-140","output":"Her and I are best friends.","ms":2.958407999999963,"flagged":0,"rules":[]}
+{"id":"tricky-141","output":"Us students need more time.","ms":3.035902999999962,"flagged":0,"rules":[]}
+{"id":"tricky-142","output":"The person which called you is here.","ms":3.4715799999999035,"flagged":1,"rules":["Agreement"]}
+{"id":"tricky-143","output":"Everyone should bring their own lunch.","ms":3.1051410000000033,"flagged":0,"rules":[]}
+{"id":"tricky-144","output":"He did it his self.","ms":5.983377000000019,"flagged":1,"rules":["Typo"]}
+{"id":"tricky-145","output":"They fixed it theirs elves.","ms":5.879742000000078,"flagged":1,"rules":["Typo"]}
+{"id":"tricky-146","output":"Myself and Sarah will handle it.","ms":3.143511999999646,"flagged":0,"rules":[]}
+{"id":"tricky-147","output":"She is taller than me.","ms":2.791443000000072,"flagged":0,"rules":[]}
+{"id":"tricky-148","output":"John and I are going to the store.","ms":3.361004000000321,"flagged":0,"rules":[]}
+{"id":"tricky-149","output":"Give it to whoever asks first.","ms":3.0555859999999484,"flagged":0,"rules":[]}
+{"id":"tricky-150","output":"This one is better.","ms":5.35878700000012,"flagged":1,"rules":["Redundancy"]}
+{"id":"tricky-151","output":"She is the smartest person I know.","ms":6.546457999999802,"flagged":1,"rules":["Redundancy"]}
+{"id":"tricky-152","output":"He runs very quick.","ms":2.8393480000004274,"flagged":0,"rules":[]}
+{"id":"tricky-153","output":"I feel badly about what happened.","ms":3.1426390000001447,"flagged":0,"rules":[]}
+{"id":"tricky-154","output":"She did good on the test.","ms":3.1975179999999455,"flagged":0,"rules":[]}
+{"id":"tricky-155","output":"This is the worse day ever.","ms":3.0587869999999384,"flagged":0,"rules":[]}
+{"id":"tricky-156","output":"My phone is more cheap than yours.","ms":3.239360999999917,"flagged":0,"rules":[]}
+{"id":"tricky-157","output":"That was the funnest trip ever.","ms":3.0233570000000327,"flagged":0,"rules":[]}
+{"id":"tricky-158","output":"He is real smart.","ms":2.530272999999852,"flagged":0,"rules":[]}
+{"id":"tricky-159","output":"The food tastes well.","ms":2.663560999999845,"flagged":0,"rules":[]}
+{"id":"tricky-160","output":"Of the two options, the first is better.","ms":4.433317999999872,"flagged":0,"rules":[]}
+{"id":"tricky-161","output":"He drives slowly in the rain.","ms":3.0600140000001375,"flagged":0,"rules":[]}
+{"id":"tricky-162","output":"I am interested in this job.","ms":5.314840000000004,"flagged":1,"rules":["Usage"]}
+{"id":"tricky-163","output":"She is married with a doctor.","ms":3.076032999999825,"flagged":0,"rules":[]}
+{"id":"tricky-164","output":"We arrived at the airport early.","ms":5.323462000000291,"flagged":1,"rules":["Usage"]}
+{"id":"tricky-165","output":"It depends of the weather.","ms":2.8988809999996192,"flagged":0,"rules":[]}
+{"id":"tricky-166","output":"I'm good at math.","ms":4.7177419999998165,"flagged":1,"rules":["Usage"]}
+{"id":"tricky-167","output":"He is afraid from dogs.","ms":2.855077000000165,"flagged":0,"rules":[]}
+{"id":"tricky-168","output":"We discussed the plan.","ms":4.6244229999997515,"flagged":1,"rules":["Usage"]}
+{"id":"tricky-169","output":"I will see you in Monday.","ms":3.1142060000001948,"flagged":0,"rules":[]}
+{"id":"tricky-170","output":"She was born on 1995.","ms":2.8112750000000233,"flagged":0,"rules":[]}
+{"id":"tricky-171","output":"Congratulations for your promotion!","ms":2.604464999999891,"flagged":0,"rules":[]}
+{"id":"tricky-172","output":"I'm waiting you outside.","ms":2.618130999999721,"flagged":0,"rules":[]}
+{"id":"tricky-173","output":"He insisted to pay for dinner.","ms":3.027313999999933,"flagged":0,"rules":[]}
+{"id":"tricky-174","output":"Where did you get that from?","ms":2.9802819999999883,"flagged":0,"rules":[]}
+{"id":"tricky-175","output":"She is responsible for the budget.","ms":2.9958700000001954,"flagged":0,"rules":[]}
+{"id":"tricky-176","output":"I definitely want to go.","ms":6.432144000000335,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-177","output":"We should separate the files.","ms":6.2817479999998795,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-178","output":"I received your message.","ms":6.3186970000001565,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-179","output":"That's weird.","ms":4.9819509999997535,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-180","output":"Thank you for your business.","ms":6.254805999999917,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-181","output":"It was a great achievement.","ms":6.958419999999933,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-182","output":"Distill next time.","ms":6.868531000000075,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-183","output":"I believe you.","ms":6.1465290000001005,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-184","output":"The government announced new rules.","ms":6.731614000000263,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-185","output":"Let's meet tomorrow.","ms":5.815724000000046,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-186","output":"Occasionally I work from home.","ms":7.499063000000206,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-187","output":"This is necessary for the trip.","ms":7.468718999999965,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-188","output":"She is a very independent person.","ms":7.527650999999878,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-189","output":"We need to accommodate more guests.","ms":7.384141,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-190","output":"The restaurant was packed.","ms":6.781423999999788,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-191","output":"I'm so embarrassed.","ms":5.7606609999998,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-192","output":"I'll do it a lot faster next time.","ms":8.821734000000106,"flagged":1,"rules":["BoundaryError"]}
+{"id":"tricky-193","output":"It's a good opportunity.","ms":7.222209000000021,"flagged":2,"rules":["Punctuation","Spelling"]}
+{"id":"tricky-194","output":"The calendar is on the wall.","ms":7.687794000000395,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-195","output":"He's a member of the club.","ms":7.045571000000109,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-196","output":"I'm not sure wish one to pick.","ms":7.898752999999942,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-197","output":"What color is your favorite?","ms":3.5086410000003525,"flagged":0,"rules":[]}
+{"id":"tricky-198","output":"We need to organize the event.","ms":3.5015080000002854,"flagged":0,"rules":[]}
+{"id":"tricky-199","output":"The theater is downtown.","ms":2.906163000000106,"flagged":0,"rules":[]}
+{"id":"tricky-200","output":"I traveled to Canada last year.","ms":3.630384000000049,"flagged":0,"rules":[]}
+{"id":"tricky-201","output":"My favorite color is blue.","ms":8.061181000000033,"flagged":2,"rules":["Spelling","Spelling"]}
+{"id":"tricky-202","output":"We need to organize the meeting.","ms":7.019058999999743,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-203","output":"The center of the city is busy.","ms":7.4750120000003335,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-204","output":"She analyzed the results.","ms":6.166278000000148,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-205","output":"I'm using Slack, GitHub, and JavaScript today.","ms":5.769985000000361,"flagged":0,"rules":[]}
+{"id":"tricky-206","output":"Let's ship the MVP by Q3.","ms":3.3639689999999973,"flagged":0,"rules":[]}
+{"id":"tricky-207","output":"My friend Prank lives in Hyderabad.","ms":14.204090000000178,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-208","output":"I think we should go.","ms":4.451383000000078,"flagged":1,"rules":["Capitalization"]}
+{"id":"tricky-209","output":"We visited par's last summer.","ms":6.150898999999754,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-210","output":"I'll see you on Monday.","ms":5.185746000000108,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-211","output":"Do you speak English?","ms":4.733272999999826,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-212","output":"The dog's barking.","ms":3.640508999999838,"flagged":1,"rules":["Grammar"]}
+{"id":"tricky-213","output":"I bought three apple's.","ms":2.1589539999999943,"flagged":0,"rules":[]}
+{"id":"tricky-214","output":"That is my sisters car.","ms":2.3115460000003623,"flagged":0,"rules":[]}
+{"id":"tricky-215","output":"The students books are on the desk.","ms":2.745998999999756,"flagged":0,"rules":[]}
+{"id":"tricky-216","output":"I don't know what to do.","ms":5.637784999999894,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-217","output":"She can't come today.","ms":3.857543000000078,"flagged":1,"rules":["Enhancement"]}
+{"id":"tricky-218","output":"He wants to listen to me.","ms":6.133042999999816,"flagged":1,"rules":["Miscellaneous"]}
+{"id":"tricky-219","output":"Were going to be late.","ms":2.3274240000000646,"flagged":0,"rules":[]}
+{"id":"tricky-220","output":"Lets go to the beach.","ms":2.799105999999938,"flagged":0,"rules":[]}
+{"id":"tricky-221","output":"What time is it.","ms":2.3094049999999697,"flagged":0,"rules":[]}
+{"id":"tricky-222","output":"However, we decided to stay.","ms":4.499427999999625,"flagged":1,"rules":["Punctuation"]}
+{"id":"tricky-223","output":"Thanks for your help, I appreciate it.","ms":5.0893630000000485,"flagged":1,"rules":["Punctuation"]}
+{"id":"tricky-224","output":"I like apples, bananas, and grapes.","ms":5.789455000000089,"flagged":1,"rules":["Punctuation"]}
+{"id":"tricky-225","output":"Wait, what did you say?","ms":4.218608000000131,"flagged":1,"rules":["Punctuation"]}
+{"id":"tricky-226","output":"I went to the store and I bought milk.","ms":3.05609800000002,"flagged":0,"rules":[]}
+{"id":"tricky-227","output":"In 2020, we moved to Denver.","ms":3.195868999999675,"flagged":0,"rules":[]}
+{"id":"tricky-228","output":"The '90so were a fun decade.","ms":5.571857999999793,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-229","output":"She asked, \"Are you coming?\"","ms":4.662550999999894,"flagged":0,"rules":[]}
+{"id":"tricky-230","output":"Its' a great day.","ms":2.303540000000339,"flagged":0,"rules":[]}
+{"id":"tricky-231","output":"Thank you so much!!","ms":3.1788620000002084,"flagged":0,"rules":[]}
+{"id":"tricky-232","output":"I went to the store.","ms":4.518610999999964,"flagged":1,"rules":["Typo"]}
+{"id":"tricky-233","output":"She is very kind.","ms":3.9005910000000767,"flagged":1,"rules":["Repetition"]}
+{"id":"tricky-234","output":"Can you send me the report?","ms":4.525882000000365,"flagged":1,"rules":["Repetition"]}
+{"id":"tricky-235","output":"I want to go home.","ms":3.8961450000001605,"flagged":1,"rules":["WordChoice"]}
+{"id":"tricky-236","output":"She asked me if I could help her with.","ms":2.945654999999988,"flagged":0,"rules":[]}
+{"id":"tricky-237","output":"He is the one who he called me.","ms":2.735764999999901,"flagged":0,"rules":[]}
+{"id":"tricky-238","output":"We need more time to finish it the project.","ms":3.317486999999801,"flagged":0,"rules":[]}
+{"id":"tricky-239","output":"I am very much excited about it.","ms":2.6453599999999824,"flagged":0,"rules":[]}
+{"id":"tricky-240","output":"I had enough by then.","ms":4.220091000000139,"flagged":1,"rules":["Repetition"]}
+{"id":"tricky-241","output":"That is that is not is not.","ms":6.0888340000001335,"flagged":3,"rules":["Repetition","Repetition","Repetition"]}
+{"id":"tricky-242","output":"Hey can send me the file when your free","ms":9.590075999999954,"flagged":2,"rules":["Capitalization","Spelling"]}
+{"id":"tricky-243","output":"I don't think its gonna work the","ms":6.387471999999889,"flagged":3,"rules":["Capitalization","Spelling","Spelling"]}
+{"id":"tricky-244","output":"me and my friend are going to the mall later","ms":6.8215659999996205,"flagged":2,"rules":["Spelling","WordChoice"]}
+{"id":"tricky-245","output":"There was a lot of people at the concert.","ms":5.682242000000315,"flagged":2,"rules":["Grammar","BoundaryError"]}
+{"id":"tricky-246","output":"I have gone to the store yesterday and bought milk.","ms":7.580249000000094,"flagged":3,"rules":["Agreement","Grammar","Grammar"]}
+{"id":"tricky-247","output":"She doesn't know where the keys is.","ms":7.051163999999972,"flagged":2,"rules":["Spelling","Typo"]}
+{"id":"tricky-248","output":"Thanh's for you're help yesterday.","ms":6.324536999999964,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-249","output":"Could you please review the doc and let me no if there's any issues.","ms":10.331603000000086,"flagged":2,"rules":["Spelling","Spelling"]}
+{"id":"tricky-250","output":"I'm looking forward to hearing from you.","ms":11.410041999999976,"flagged":2,"rules":["Spelling","Spelling"]}
+{"id":"tricky-251","output":"The meeting have been moved to Tuesday at 3pm.","ms":7.678538000000117,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-252","output":"It's been a while since we talked, hows it going?","ms":7.771386999999777,"flagged":1,"rules":["Punctuation"]}
+{"id":"tricky-253","output":"Please find attach the report for you're review.","ms":3.039767000000211,"flagged":0,"rules":[]}
+{"id":"tricky-254","output":"We were supposed to finish this last week.","ms":5.411465000000135,"flagged":2,"rules":["Agreement","Usage"]}
+{"id":"tricky-255","output":"can you explain how does this function works","ms":2.9666480000000774,"flagged":0,"rules":[]}
+{"id":"tricky-256","output":"Write me a python script that read a cab file and print the rows","ms":8.583434000000125,"flagged":2,"rules":["Capitalization","Spelling"]}
+{"id":"tricky-257","output":"Whats the difference between a list and a tuple","ms":5.8970540000000256,"flagged":2,"rules":["Capitalization","Usage"]}
+{"id":"tricky-258","output":"I toyed restarting it but it still don't work.","ms":7.02345299999979,"flagged":2,"rules":["Spelling","Spelling"]}
+{"id":"tricky-259","output":"Sorry for the late reply, I was busy all day.","ms":4.328631999999743,"flagged":0,"rules":[]}
+{"id":"tricky-260","output":"Can you summarize this article in three bullet points?","ms":3.245871999999963,"flagged":0,"rules":[]}
+{"id":"tricky-261","output":"Let me know if you have any questions.","ms":2.968767000000298,"flagged":0,"rules":[]}
+{"id":"tricky-262","output":"I'll be there in 10 minutes.","ms":2.6042239999997037,"flagged":0,"rules":[]}
+{"id":"tricky-263","output":"Sounds good, see you then!","ms":3.3254480000000513,"flagged":0,"rules":[]}
+{"id":"tricky-264","output":"loll that's hilarious","ms":4.527264999999716,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-265","output":"okay","ms":3.662163999999848,"flagged":1,"rules":["Spelling"]}
+{"id":"tricky-266","output":"Can we push the call to 4 PM ET?","ms":3.136026000000129,"flagged":0,"rules":[]}
+{"id":"tricky-267","output":"I've attached the slides from today's meeting.","ms":2.809690000000046,"flagged":0,"rules":[]}
+{"id":"tricky-268","output":"The quarterly report shows that revenue grew by twelve percent, mostly because of strong sales in the Midwest.","ms":5.50526200000013,"flagged":0,"rules":[]}
+{"id":"tricky-269","output":"If you have time this weekend, could you look over my résumé before I send it out?","ms":5.405243000000155,"flagged":0,"rules":[]}
+{"id":"tricky-270","output":"Although the forecast called for rain, the afternoon turned out to be sunny and warm.","ms":5.610058000000208,"flagged":0,"rules":[]}
+{"id":"tricky-271","output":"Whoever finishes first gets to choose where we eat.","ms":3.0269389999998566,"flagged":0,"rules":[]}
+{"id":"tricky-272","output":"She has lived in New York for ten years, yet she still gets lost in Brooklyn.","ms":5.485867000000326,"flagged":0,"rules":[]}
+{"id":"tricky-273","output":"The data suggest that sleep affects memory more than we thought.","ms":3.6299800000001596,"flagged":0,"rules":[]}
+{"id":"tricky-274","output":"I'd rather walk than take the bus when the weather is this nice.","ms":4.063311999999769,"flagged":0,"rules":[]}
+{"id":"tricky-275","output":"Not only did he finish the project early, but he also helped two coworkers with theirs.","ms":5.142514000000119,"flagged":0,"rules":[]}
+{"id":"tricky-276","output":"We can't decide whether to paint the kitchen blue or green.","ms":3.3248779999998987,"flagged":0,"rules":[]}
+{"id":"tricky-277","output":"Having read the instructions twice, I still couldn't assemble the shelf.","ms":4.509926000000178,"flagged":0,"rules":[]}
+{"id":"tricky-278","output":"The committee, which meets every Tuesday, voted to approve the new budget.","ms":5.125994999999875,"flagged":0,"rules":[]}
+{"id":"tricky-279","output":"There's no way I'm getting up at 5 a.m. on a Saturday.","ms":3.5410189999997783,"flagged":0,"rules":[]}
+{"id":"tricky-280","output":"My grandmother's recipe calls for two cups of flour and a pinch of salt.","ms":3.7893730000000687,"flagged":0,"rules":[]}
+{"id":"tricky-281","output":"The children's museum is free on the first Sunday of every month.","ms":3.477462000000287,"flagged":0,"rules":[]}
+{"id":"tricky-282","output":"It's important that every employee complete the training by Friday.","ms":3.3272900000001755,"flagged":0,"rules":[]}
+{"id":"tricky-283","output":"He laid the book on the table and then lay down on the couch.","ms":3.8022930000001907,"flagged":0,"rules":[]}
+{"id":"tricky-284","output":"Fewer than ten people showed up, which was less than we had hoped for.","ms":4.6500019999998585,"flagged":0,"rules":[]}
+{"id":"tricky-285","output":"Their house is the one over there, and they're home right now.","ms":4.835304000000178,"flagged":0,"rules":[]}
+{"id":"tricky-286","output":"The CEO said the merger would affect about 300 jobs.","ms":3.220462000000225,"flagged":0,"rules":[]}
+{"id":"tricky-287","output":"Run the tests again after you update the dependencies.","ms":3.0140010000000075,"flagged":0,"rules":[]}
