@@ -1,5 +1,6 @@
 export type SectionId =
 	| 'general'
+	| 'ai'
 	| 'writing'
 	| 'dictionary'
 	| 'shortcuts'
@@ -19,6 +20,11 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
 		id: 'general',
 		label: 'General',
 		gradient: 'linear-gradient(180deg, #3e8cff 0%, #1a5dd9 100%)',
+	},
+	{
+		id: 'ai',
+		label: 'AI Suggestions',
+		gradient: 'linear-gradient(180deg, #b48cff 0%, #7a4fd9 100%)',
 	},
 	{
 		id: 'dictionary',

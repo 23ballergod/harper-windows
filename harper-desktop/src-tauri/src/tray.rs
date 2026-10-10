@@ -10,16 +10,14 @@ use tauri::{AppHandle, Manager, Runtime, State};
 use tokio::runtime::Runtime as AsyncRuntime;
 
 use crate::highlighter_service::HighlighterService;
-use crate::windows::{open_issue_report, show_editor_window, show_settings_window};
+use crate::windows::{show_editor_window, show_settings_window};
 
 /// Defines the layout of the tray menu.
 fn tray_menu<R: Runtime, M: Manager<R>>(manager: &M) -> tauri::Result<Menu<R>> {
     MenuBuilder::new(manager)
-        .text("toggle-service", "Toggle Service")
-        .text("open-editor", "Open Editor")
+        .text("toggle-service", "Pause or resume checking")
         .text("settings", "Settings")
-        .text("report-issue", "Report Issue")
-        .text("quit", "Quit")
+        .text("quit", "Quit Shah Re-Writer")
         .build()
 }
 
@@ -30,6 +28,7 @@ pub fn set_up_tray_menu(app: &AppHandle) -> tauri::Result<()> {
     let initial_is_running = highlighter_service.is_running();
 
     let tray_icon = TrayIconBuilder::new()
+        .tooltip(crate::branding::APP_NAME)
         .icon(menu_bar_icon(initial_is_running)?)
         .menu(&tray_menu(app)?)
         .on_menu_event(move |app, event| {
@@ -51,8 +50,12 @@ pub fn set_up_tray_menu(app: &AppHandle) -> tauri::Result<()> {
                     let _ = show_settings_window(app)
                         .inspect_err(|err| error!("Could not open the settings window: {err}"));
                 }
-                "report-issue" => open_issue_report(app),
-                "quit" => app.exit(0),
+                "quit" => {
+                    // Stop the overlay process first so nothing it draws can outlive the app.
+                    let service: State<HighlighterService> = app.state();
+                    service.stop();
+                    app.exit(0)
+                }
                 _ => error!("Encountered unexpected event: `{event_id}`"),
             };
         })

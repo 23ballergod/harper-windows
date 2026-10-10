@@ -68,7 +68,6 @@ impl ExprLinter for LookingForwardTo {
                 format!("{verb}ing")
             };
 
-        println!("gerund_form: -{gerund_form}- -- verb: -{verb}-");
         Some(Lint {
             span,
             lint_kind: LintKind::WordChoice,

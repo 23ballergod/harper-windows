@@ -14,15 +14,13 @@ use harper_core::{
     spell::MutableDictionary,
 };
 use serde::Serialize;
-use std::io::stderr;
 use std::{
     cell::RefCell,
     rc::Rc,
     sync::{Arc, Mutex as StdMutex},
 };
 use tauri::Manager as _;
-use tracing::{Level, error};
-use tracing_subscriber::FmtSubscriber;
+use tracing::error;
 
 use crate::os_broker::{AccessibilityPermissionStatus, OsBroker};
 use tokio::{
@@ -31,6 +29,8 @@ use tokio::{
     sync::Mutex,
 };
 
+mod ai;
+pub(crate) mod branding;
 pub mod color;
 mod commands;
 pub mod communication;
@@ -40,6 +40,7 @@ mod desktop_updater;
 pub mod highlighter;
 pub mod highlighter_service;
 pub mod lint_kind_color;
+pub(crate) mod logging;
 mod os_broker;
 pub mod rect;
 
@@ -114,16 +115,11 @@ fn warm_app_search_cache(app: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let subscriber = FmtSubscriber::builder()
-        .map_writer(move |_| stderr)
-        .with_ansi(false)
-        .with_max_level(Level::WARN)
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("Unable to set up tracing subscriber.");
-
     let args = Args::parse();
+    logging::init(match args.command {
+        Some(Command::Highlighter { .. }) => "highlighter",
+        None => "app",
+    });
 
     match args.command {
         Some(Command::Highlighter { no_parent }) => run_highlighter(!no_parent),
@@ -132,6 +128,11 @@ pub fn run() {
 }
 
 pub fn run_tauri() {
+    #[cfg(windows)]
+    if !claim_single_instance() {
+        return;
+    }
+
     let async_runtime = Builder::new_multi_thread()
         .enable_all()
         .build()
@@ -181,6 +182,7 @@ pub fn run_tauri() {
     tauri::Builder::default()
         .manage(config)
         .manage(desktop_updater::DesktopUpdater::default())
+        .manage(ai::AiDownloads::default())
         .manage(highlighter_service)
         .manage(StdMutex::new(broker))
         .manage(async_runtime)
@@ -322,6 +324,9 @@ pub fn run_highlighter(has_parent: bool) {
     let refresh_debounce_ms = debounce_ms.clone();
     let refresh_linter = linter.clone();
 
+    let mut ai_runtime = ai::AiRuntime::new();
+    let ai_linter = linter.clone();
+
     let lint_text = move |text: &str| {
         let debounce_ms = *lint_debounce_ms.borrow();
         let mut debounce_state = lint_debounce_state.borrow_mut();
@@ -339,10 +344,19 @@ pub fn run_highlighter(has_parent: bool) {
         for lints in organized_lints.values_mut() {
             lint_ignored_lints.borrow().remove_ignored(lints, &doc);
         }
+        harper_ai::remove_false_alarms(doc.get_source(), organized_lints.values_mut());
 
         debounce_state.store_lints(text, debounce_ms, &organized_lints);
 
         organized_lints
+    };
+
+    // AI suggestions arrive asynchronously, so they are merged outside the debounce cache: a
+    // result that lands after Harper's lints were cached still shows up on the next frame.
+    let lint_text = move |text: &str| {
+        let mut lints = lint_text(text);
+        ai_runtime.add_lints(text, &ai_linter.borrow().config, &mut lints);
+        lints
     };
 
     let ignore_lint = move |lint: &Lint, document: &Document| {
@@ -536,4 +550,26 @@ fn apply_highlighter_config(
     }
     *debounce_ms.borrow_mut() = config.debounce_ms;
     *linter.borrow_mut() = linter_config;
+}
+
+/// Makes sure only one copy of the app runs. A second launch quits right away, so two copies never
+/// draw two overlays. The mutex is held until this process exits.
+#[cfg(windows)]
+fn claim_single_instance() -> bool {
+    use ::windows::Win32::Foundation::{ERROR_ALREADY_EXISTS, GetLastError};
+    use ::windows::Win32::System::Threading::CreateMutexW;
+    use ::windows::core::w;
+
+    // SAFETY: creates (or opens) a named mutex; the handle is intentionally leaked so it lives
+    // for the whole process.
+    match unsafe { CreateMutexW(None, false, w!("Local\\ShahReWriter.SingleInstance")) } {
+        Ok(_) => {
+            let last_error = unsafe { GetLastError() };
+            last_error != ERROR_ALREADY_EXISTS
+        }
+        Err(error) => {
+            eprintln!("failed to check for another running copy: {error}");
+            true
+        }
+    }
 }

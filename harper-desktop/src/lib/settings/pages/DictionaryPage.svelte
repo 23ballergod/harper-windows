@@ -151,7 +151,7 @@ async function submitDictionaryWord() {
         <div class="stanza">
           <div class="eyebrow">User Dictionary</div>
           <p class="section-copy">
-            Words and names Harper should never flag. This list syncs with Harper's local app config.
+            Words and names Shah Re-Writer should never flag. This list syncs with Shah Re-Writer's local app config.
           </p>
 
           {#if isDictionaryLoading}

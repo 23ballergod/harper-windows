@@ -1,0 +1,129 @@
+name: Windows installer
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  desktop-windows:
+    name: Build Windows installer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+      - name: Install pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: ".node-version"
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install Tauri and cross-compilation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libwebkit2gtk-4.1-dev \
+            libxdo-dev \
+            llvm \
+            nsis
+      - name: Verify Windows build tools
+        run: command -v clang-cl llvm-lib makensis
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          cache-bin: "true"
+          key: build-desktop-windows
+          workspaces: |
+            . -> target
+            harper-desktop/src-tauri -> target
+      - uses: cargo-bins/cargo-binstall@b874e25ea559687bec77e281e9b271aa1367b624 # main
+      - name: Install `wasm-pack`
+        run: cargo binstall wasm-pack --force --no-confirm
+      - name: Install `cargo-xwin`
+        run: cargo binstall cargo-xwin --force --no-confirm
+      - name: Install `tauri-cli`
+        run: cargo binstall tauri-cli --force --no-confirm
+      - name: Build Harper Desktop for Windows
+        run: just build-desktop-windows
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: harper-windows-installer
+          path: harper-desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*
+          if-no-files-found: error
+
+  smoke-test:
+    name: Install, launch and uninstall on Windows
+    needs: desktop-windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/download-artifact@v4
+        with:
+          name: harper-windows-installer
+          path: installer
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem installer -Recurse -Filter *-setup.exe | Select-Object -First 1
+          ./.github/smoke/installer-smoke.ps1 -Installer $setup.FullName -Out smoke-results
+          $code = $LASTEXITCODE
+          "Commit $env:GITHUB_SHA, run $env:GITHUB_RUN_ID" | Add-Content smoke-results/report.md
+          Get-Content smoke-results/report.md | Add-Content $env:GITHUB_STEP_SUMMARY
+          exit $code
+      # Screenshots go to the smoke-results branch so they can be viewed without downloading
+      # artifacts. Each run replaces the previous results.
+      - name: Publish screenshots
+        if: always()
+        shell: bash
+        run: |
+          [ -d smoke-results ] || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan smoke-results-publish
+          git rm -rq --cached .
+          git add -f smoke-results
+          git commit -qm "Installer smoke test for $GITHUB_SHA [skip ci]"
+          git push -f origin HEAD:refs/heads/smoke-results
+
+  # A tag like v0.1.0-beta.1 publishes the installer as a pre-release, but only after it passed the
+  # Windows smoke test, so the download link always points at a build that was checked.
+  release:
+    name: Publish pre-release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: harper-windows-installer
+          path: installer
+      - uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
+        with:
+          artifacts: installer/*-setup.exe
+          allowUpdates: true
+          prerelease: true
+          name: Shah Re-Writer ${{ github.ref_name }}
+          body: Test build of Shah Re-Writer for Windows. Download the setup file below and run it.

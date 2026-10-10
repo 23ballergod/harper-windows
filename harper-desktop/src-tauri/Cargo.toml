@@ -1,7 +1,7 @@
 [package]
 name = "harper-desktop"
-version = "2.12.0"
-description = "The language checker for developers."
+version = "0.1.0"
+description = "Shah Re-Writer: a grammar checker that works in every Windows app."
 edition = "2024"
 publish = false
 
@@ -22,6 +22,8 @@ tauri = { version = "2.11.1", features = ["image-png", "tray-icon"] }
 tauri-plugin-opener = "2.5.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = "0.10"
+hex = "0.4"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 base64 = "0.23.1"
 winit = "0.30.13"
@@ -33,6 +35,7 @@ pollster = "1.0.1"
 clap = { version = "4.6.1", features = ["derive"] }
 dirs = "6.0.0"
 harper-core = { path = "../../harper-core" }
+harper-ai = { path = "../../harper-ai" }
 harper-dictionary-wordlist = { path = "../../harper-dictionary-wordlist" }
 egui_commonmark = "0.23.0"
 tokio = { version = "1.52.1", default-features = false, features = [
@@ -75,8 +78,11 @@ core-graphics = "0.25.0"
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.62.2", features = [
     "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_System_Console",
     "Win32_System_Threading",
     "Win32_UI_HiDpi",
+    "Win32_UI_Input_KeyboardAndMouse",
     "Win32_UI_WindowsAndMessaging",
 ] }
 uiautomation = { version = "0.25.0", features = ["process"] }

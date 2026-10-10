@@ -39,7 +39,8 @@ impl Config {
             ignored_lints: IgnoredLints::new(),
             lint_config: FlatConfig::new_curated(),
             integrations: Integration::curated_integrations(),
-            auto_enable_new_apps: false,
+            // On Windows, check every app by default, the way Grammarly does.
+            auto_enable_new_apps: cfg!(target_os = "windows"),
             onboarding_completed: false,
             debounce_ms: 0,
             auto_update: true,
@@ -170,9 +171,9 @@ impl Config {
             .with_lint_config(self.lint_config.clone())
     }
 
-    #[allow(dead_code)]
-    fn folder_path() -> Option<PathBuf> {
-        dirs::config_dir().map(|path| path.join("harper-desktop"))
+    /// Uses its own folder so settings never collide with an upstream Harper Desktop install.
+    pub(crate) fn folder_path() -> Option<PathBuf> {
+        dirs::config_dir().map(|path| path.join(crate::branding::DATA_FOLDER))
     }
 
     #[allow(dead_code)]
@@ -425,7 +426,7 @@ mod tests {
         assert_eq!(path.file_name().unwrap(), "config.json");
         assert_eq!(
             path.parent().unwrap().file_name().unwrap(),
-            "harper-desktop"
+            crate::branding::DATA_FOLDER
         );
     }
 
@@ -444,7 +445,7 @@ mod tests {
         assert_eq!(path.file_name().unwrap(), "dictionary.txt");
         assert_eq!(
             path.parent().unwrap().file_name().unwrap(),
-            "harper-desktop"
+            crate::branding::DATA_FOLDER
         );
     }
 }

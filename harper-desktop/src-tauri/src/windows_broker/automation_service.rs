@@ -3,19 +3,28 @@ use std::sync::mpsc::{Receiver, SyncSender, TryRecvError, TrySendError, sync_cha
 use std::thread::sleep;
 use std::time::Duration;
 
+use super::win32_edit;
 use crate::rect::Rect;
 use crate::windows_broker::get_focused_monitor_scale;
 use harper_core::{Span, linting::Suggestion};
 use is_macro::Is;
-use uiautomation::types::{Handle, TextPatternRangeEndpoint, TextUnit, TreeScope, UIProperty};
+use uiautomation::types::{
+    ControlType, Handle, TextPatternRangeEndpoint, TextUnit, TreeScope, UIProperty,
+};
 use uiautomation::variants::Variant;
 use uiautomation::{
     UIAutomation, UIElement,
-    patterns::{UITextPattern, UIValuePattern},
+    patterns::{UITextPattern, UITextRange, UIValuePattern},
 };
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::Accessibility::IUIAutomationTextRange;
-use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
+use windows::Win32::UI::Input::KeyboardAndMouse::{
+    INPUT, INPUT_0, INPUT_KEYBOARD, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP,
+    KEYEVENTF_UNICODE, SendInput, VIRTUAL_KEY, VK_DELETE,
+};
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetForegroundWindow, GetWindowThreadProcessId, SetForegroundWindow,
+};
 
 /// Information about a worker thread.
 struct WorkerData {
@@ -214,6 +223,20 @@ fn apply_suggestion_job(automation: &UIAutomation, mut arguments: Vec<JobArgumen
     let Ok(element) =
         text_element_for_window(automation, request.window, Some(&request.expected_text))
     else {
+        if let Some(edit) = win32_edit::focused_edit(automation, request.window)
+            && win32_edit::get_text(edit).as_deref() == Some(request.expected_text.as_str())
+        {
+            let (span, replacement) = match &request.suggestion {
+                Suggestion::ReplaceWith(with) => (request.span, with.iter().collect()),
+                Suggestion::InsertAfter(with) => (
+                    Span::new(request.span.end, request.span.end),
+                    with.iter().collect(),
+                ),
+                Suggestion::Remove => (request.span, String::new()),
+            };
+            win32_edit::replace(edit, &request.expected_text, span, &replacement);
+            return JobResult::None;
+        }
         eprintln!(
             "Unable to apply Windows suggestion: the source text element is no longer available"
         );
@@ -237,6 +260,24 @@ fn apply_suggestion_job(automation: &UIAutomation, mut arguments: Vec<JobArgumen
             return JobResult::None;
         }
     };
+
+    // Prefer selecting the misspelled range and typing the fix, the way a person would. Unlike
+    // replacing the whole value, this works in Chrome and Electron editors (which often lack a
+    // writable value pattern), keeps formatting, and leaves the change on the app's undo stack.
+    match apply_suggestion_by_typing(
+        &element,
+        request.window,
+        &current_text,
+        request.span,
+        &request.suggestion,
+    ) {
+        Ok(()) => return JobResult::None,
+        Err(error) => {
+            eprintln!(
+                "Typing the Windows suggestion failed, falling back to setting the value: {error}"
+            );
+        }
+    }
 
     let Ok(value_pattern) = element.get_pattern::<UIValuePattern>() else {
         eprintln!(
@@ -287,40 +328,67 @@ fn get_text(element: &UIElement) -> uiautomation::Result<String> {
     range.get_text(-1)
 }
 
-/// Finds the focused text element below `window`.
+/// Finds the focused text element in `window`.
 ///
-/// When `expected_text` is provided, unrelated text providers are excluded.
+/// Asks Windows for the element with keyboard focus first, which works for classic Win32 edit
+/// controls (Notepad) as well as browsers and Electron apps, then falls back to searching the
+/// window. When `expected_text` is provided, unrelated text providers are excluded.
 fn text_element_for_window(
     automation: &UIAutomation,
     window: isize,
     expected_text: Option<&str>,
 ) -> uiautomation::Result<UIElement> {
-    let root = automation.element_from_handle(Handle::from(window))?;
     let text_condition = automation.create_property_condition(
         UIProperty::IsTextPatternAvailable,
         Variant::from(true),
         None,
     )?;
+
+    let mut candidates = Vec::new();
+    if let Ok(focused) = automation.get_focused_element()
+        && belongs_to_window(&focused, window)
+    {
+        // Some editors give focus to a container around the text box.
+        let inner = focused.find_first(TreeScope::Descendants, &text_condition);
+        candidates.push(focused);
+        candidates.extend(inner);
+        // Trust what Windows says has focus. Searching the window for a text box that claims
+        // focus can find one the user already left (Chrome is slow to update that flag), which
+        // kept its underlines on screen after clicking elsewhere on the page.
+        return candidates
+            .into_iter()
+            .filter(is_editable_text)
+            .find(|element| {
+                get_text(element)
+                    .is_ok_and(|text| expected_text.is_none_or(|expected| expected == text))
+            })
+            .ok_or_else(|| {
+                Error::new(uiautomation::errors::ERR_NOTFOUND, "no text element found")
+            });
+    }
+
+    let root = automation.element_from_handle(Handle::from(window))?;
     let keyboard_condition = automation.create_property_condition(
         UIProperty::HasKeyboardFocus,
         Variant::from(true),
         None,
     )?;
     let condition = automation.create_and_condition(text_condition, keyboard_condition)?;
+    candidates.extend(
+        root.find_all(TreeScope::Subtree, &condition)
+            .unwrap_or_default(),
+    );
 
-    for element in root.find_all(TreeScope::Subtree, &condition)? {
-        if let Some(expected) = expected_text {
-            let text = get_text(&element);
-
-            let Ok(text) = text else {
-                continue;
-            };
-
-            if expected != text {
-                continue;
-            }
+    for element in candidates {
+        if !is_editable_text(&element) {
+            continue;
         }
-
+        let Ok(text) = get_text(&element) else {
+            continue;
+        };
+        if expected_text.is_some_and(|expected| expected != text) {
+            continue;
+        }
         return Ok(element);
     }
 
@@ -330,11 +398,99 @@ fn text_element_for_window(
     ))
 }
 
+/// Whether `element` is a box the user types into, rather than a whole page or read-only text.
+///
+/// Browsers and Electron apps (Chrome, Edge, the Claude app, Firefox) expose every web page as a
+/// readable document, so without this check a page with nothing focused gets every button and
+/// label underlined.
+fn is_editable_text(element: &UIElement) -> bool {
+    // Never read password boxes.
+    if element.is_password().unwrap_or(true) {
+        return false;
+    }
+    // Browser address bars hold web addresses, not writing.
+    if element
+        .get_classname()
+        .is_ok_and(|class| class.starts_with("Omnibox"))
+    {
+        return false;
+    }
+    if let Ok(value) = element.get_pattern::<UIValuePattern>()
+        && let Ok(read_only) = value.is_readonly()
+    {
+        return !read_only;
+    }
+    match element.get_control_type() {
+        Ok(ControlType::Edit) => true,
+        Ok(ControlType::Document) => !matches!(
+            element.get_framework_id().unwrap_or_default().as_str(),
+            "Chrome" | "Gecko"
+        ),
+        _ => false,
+    }
+}
+
+/// Whether two windows belong to the same process.
+pub(super) fn same_process(a: isize, b: isize) -> bool {
+    let (mut pa, mut pb) = (0u32, 0u32);
+    unsafe {
+        GetWindowThreadProcessId(HWND(a as *mut c_void), Some(&mut pa));
+        GetWindowThreadProcessId(HWND(b as *mut c_void), Some(&mut pb));
+    }
+    pa != 0 && pa == pb
+}
+
+/// Whether `element` belongs to the same process as `window`.
+fn belongs_to_window(element: &UIElement, window: isize) -> bool {
+    let mut window_process = 0u32;
+    unsafe {
+        GetWindowThreadProcessId(HWND(window as *mut c_void), Some(&mut window_process));
+    }
+    element
+        .get_process_id()
+        .is_ok_and(|pid| pid == window_process && pid != 0)
+}
+
+/// Describes the focused element, to explain in the log why its text can't be read.
+fn describe_focused_element(automation: &UIAutomation) -> String {
+    let Ok(focused) = automation.get_focused_element() else {
+        return "Windows reports no focused element".to_string();
+    };
+    // Web apps can have class lists hundreds of characters long.
+    let class: String = focused
+        .get_classname()
+        .unwrap_or_default()
+        .chars()
+        .take(60)
+        .collect();
+    format!(
+        "focused element is a {:?} (class {class:?}, framework {:?}); text pattern: {}; editable: {}",
+        focused.get_control_type().ok(),
+        focused.get_framework_id().unwrap_or_default(),
+        match focused.get_pattern::<UITextPattern>() {
+            Ok(_) => "yes".to_string(),
+            Err(error) => format!("no ({error})"),
+        },
+        if is_editable_text(&focused) {
+            "yes"
+        } else {
+            "no"
+        }
+    )
+}
+
 fn get_text_job(automation: &UIAutomation, args: Vec<JobArgument>) -> JobResult {
     let Some(JobArgument::Window(window)) = args.first() else {
         return JobResult::Err;
     };
     let Ok(element) = text_element_for_window(automation, *window, None) else {
+        if let Some(edit) = win32_edit::focused_edit(automation, *window)
+            && let Some(text) = win32_edit::get_text(edit)
+        {
+            crate::logging::note_change("text element", "classic Win32 edit box".to_string());
+            return JobResult::String(text);
+        }
+        crate::logging::note_change("text element", describe_focused_element(automation));
         return JobResult::Err;
     };
 
@@ -364,19 +520,8 @@ impl Drop for OwnedSafeArray {
     }
 }
 
-fn bounding_rectangles_for_span(
-    element: &UIElement,
-    start: i32,
-    len: i32,
-) -> Result<Vec<(f64, f64, f64, f64)>> {
-    if start < 0 || len < 0 {
-        return Err(Error::new(
-            uiautomation::errors::ERR_INVALID_ARG,
-            "start and len must be non-negative",
-        ));
-    }
-
-    let pattern: UITextPattern = element.get_pattern()?;
+/// Returns the text range covering `len` characters starting at `start`.
+fn range_for_span(pattern: &UITextPattern, start: i32, len: i32) -> Result<UITextRange> {
     let range = pattern.get_document_range()?;
 
     range.move_endpoint_by_range(
@@ -394,6 +539,122 @@ fn bounding_rectangles_for_span(
     )?;
 
     range.move_endpoint_by_unit(TextPatternRangeEndpoint::End, TextUnit::Character, len)?;
+
+    Ok(range)
+}
+
+/// Selects the lint's text in the source control and types the suggestion over it.
+fn apply_suggestion_by_typing(
+    element: &UIElement,
+    window: isize,
+    current_text: &str,
+    span: Span<char>,
+    suggestion: &Suggestion,
+) -> std::result::Result<(), String> {
+    let chars: Vec<char> = current_text.chars().collect();
+    if span.end > chars.len() {
+        return Err("the lint span is outside the source text".into());
+    }
+
+    let (start, len, replacement) = match suggestion {
+        Suggestion::ReplaceWith(with) => (span.start, span.len(), with.iter().collect::<String>()),
+        Suggestion::InsertAfter(with) => (span.end, 0, with.iter().collect::<String>()),
+        Suggestion::Remove => (span.start, span.len(), String::new()),
+    };
+
+    let pattern: UITextPattern = element.get_pattern().map_err(|e| e.to_string())?;
+    let range = range_for_span(&pattern, start as i32, len as i32).map_err(|e| e.to_string())?;
+
+    // Apps count characters differently (some use UTF-16 units, some collapse line breaks), so
+    // make sure the range we are about to overwrite really holds the text we linted.
+    let expected: String = chars[start..start + len].iter().collect();
+    let found = range.get_text(-1).map_err(|e| e.to_string())?;
+    if normalize_line_breaks(&found) != normalize_line_breaks(&expected) {
+        return Err(format!(
+            "the selected range holds {found:?} instead of {expected:?}"
+        ));
+    }
+
+    unsafe {
+        let _ = SetForegroundWindow(HWND(window as *mut std::ffi::c_void));
+    }
+    let _ = element.set_focus();
+    range.select().map_err(|e| e.to_string())?;
+
+    if replacement.is_empty() {
+        send_virtual_key(VK_DELETE)
+    } else {
+        send_unicode_text(&replacement)
+    }
+}
+
+fn normalize_line_breaks(text: &str) -> String {
+    text.replace("\r\n", "\n").replace('\r', "\n")
+}
+
+/// Types `text` into the focused control as Unicode keystrokes, independent of keyboard layout.
+fn send_unicode_text(text: &str) -> std::result::Result<(), String> {
+    let mut inputs = Vec::with_capacity(text.len() * 4);
+    for unit in text.encode_utf16() {
+        for flags in [KEYEVENTF_UNICODE, KEYEVENTF_UNICODE | KEYEVENTF_KEYUP] {
+            inputs.push(INPUT {
+                r#type: INPUT_KEYBOARD,
+                Anonymous: INPUT_0 {
+                    ki: KEYBDINPUT {
+                        wVk: VIRTUAL_KEY(0),
+                        wScan: unit,
+                        dwFlags: flags,
+                        time: 0,
+                        dwExtraInfo: 0,
+                    },
+                },
+            });
+        }
+    }
+    send_inputs(&inputs)
+}
+
+fn send_virtual_key(key: VIRTUAL_KEY) -> std::result::Result<(), String> {
+    let inputs = [KEYBD_EVENT_FLAGS(0), KEYEVENTF_KEYUP].map(|flags| INPUT {
+        r#type: INPUT_KEYBOARD,
+        Anonymous: INPUT_0 {
+            ki: KEYBDINPUT {
+                wVk: key,
+                wScan: 0,
+                dwFlags: flags,
+                time: 0,
+                dwExtraInfo: 0,
+            },
+        },
+    });
+    send_inputs(&inputs)
+}
+
+fn send_inputs(inputs: &[INPUT]) -> std::result::Result<(), String> {
+    let sent = unsafe { SendInput(inputs, size_of::<INPUT>() as i32) };
+    if sent as usize != inputs.len() {
+        return Err(format!(
+            "only {sent} of {} keystrokes were delivered (the app may be running as administrator)",
+            inputs.len()
+        ));
+    }
+    Ok(())
+}
+
+fn bounding_rectangles_for_span(
+    element: &UIElement,
+    start: i32,
+    len: i32,
+) -> Result<Vec<(f64, f64, f64, f64)>> {
+    if start < 0 || len < 0 {
+        return Err(Error::new(
+            uiautomation::errors::ERR_INVALID_ARG,
+            "start and len must be non-negative",
+        ));
+    }
+
+    let pattern: UITextPattern = element.get_pattern()?;
+    let range = range_for_span(&pattern, start, len)?;
 
     let raw: &IUIAutomationTextRange = range.as_ref();
     let array = OwnedSafeArray(unsafe { raw.GetBoundingRectangles()? });
@@ -477,11 +738,39 @@ fn get_bounding_rect_job(automation: &UIAutomation, arguments: Vec<JobArgument>)
     let Some(JobArgument::Text(expected_text)) = arguments.get(1) else {
         return JobResult::Err;
     };
-    let Ok(text_element) = text_element_for_window(automation, *window, Some(expected_text)) else {
-        return JobResult::Err;
+    let effective_monitor_scale = get_focused_monitor_scale();
+    let scale = |(x, y, w, h): &(f64, f64, f64, f64)| {
+        Rect::new(
+            *x / effective_monitor_scale,
+            *y / effective_monitor_scale,
+            *w / effective_monitor_scale,
+            *h / effective_monitor_scale,
+        )
     };
 
-    let effective_monitor_scale = get_focused_monitor_scale();
+    let Ok(text_element) = text_element_for_window(automation, *window, Some(expected_text)) else {
+        let Some(edit) = win32_edit::focused_edit(automation, *window) else {
+            return JobResult::Err;
+        };
+        if win32_edit::get_text(edit).as_deref() != Some(expected_text.as_str()) {
+            return JobResult::Err;
+        }
+        return JobResult::GroupedRects(
+            arguments
+                .iter()
+                .skip(2)
+                .filter_map(|argument| match argument {
+                    JobArgument::Span(span) => Some(
+                        win32_edit::span_rects(edit, expected_text, *span)
+                            .iter()
+                            .map(scale)
+                            .collect(),
+                    ),
+                    _ => None,
+                })
+                .collect(),
+        );
+    };
 
     let mut rects = Vec::with_capacity(arguments.len().saturating_sub(2));
 
@@ -494,19 +783,7 @@ fn get_bounding_rect_job(automation: &UIAutomation, arguments: Vec<JobArgument>)
             return JobResult::Err;
         };
 
-        rects.push(
-            found_rects
-                .iter()
-                .map(|(x, y, w, h)| {
-                    Rect::new(
-                        *x / effective_monitor_scale,
-                        *y / effective_monitor_scale,
-                        *w / effective_monitor_scale,
-                        *h / effective_monitor_scale,
-                    )
-                })
-                .collect(),
-        );
+        rects.push(found_rects.iter().map(scale).collect());
     }
 
     JobResult::GroupedRects(rects)

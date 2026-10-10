@@ -2,7 +2,7 @@
 import { Button, Checkbox, CheckIcon, Select, SettingRow } from 'components';
 
 const shortcutItems = [
-	{ id: 'show-menu', label: 'Show Harper menu', keys: ['Shift', 'Cmd', 'H'] },
+	{ id: 'show-menu', label: 'Show Shah Re-Writer menu', keys: ['Shift', 'Cmd', 'H'] },
 	{ id: 'quick-review', label: 'Open quick review', keys: ['Ctrl', 'Cmd', 'Space'] },
 	{ id: 'accept-last', label: 'Apply last suggestion', keys: ['Ctrl', 'E'] },
 	{ id: 'dismiss-last', label: 'Dismiss last suggestion', keys: ['Ctrl', 'D'] },
@@ -41,7 +41,7 @@ let activationKey = 'off';
 
           <SettingRow top>
             <strong>Allow shortcuts while other apps are focused</strong>
-            <p>When off, Harper shortcuts only work while the Harper window is active.</p>
+            <p>When off, Shah Re-Writer shortcuts only work while the Shah Re-Writer window is active.</p>
             <Checkbox
               slot="control"
               appearance="settings"
@@ -60,7 +60,7 @@ let activationKey = 'off';
           <div class="eyebrow">Activation</div>
           <SettingRow top>
             <strong>Activation key</strong>
-            <p>Require a modifier key to enable Harper checking in a window.</p>
+            <p>Require a modifier key to enable Shah Re-Writer checking in a window.</p>
             <Select
               slot="control"
               unstyled

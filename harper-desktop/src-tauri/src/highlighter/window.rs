@@ -1,9 +1,9 @@
 use std::num::NonZeroU32;
 use std::sync::Arc;
 
-use egui_wgpu::wgpu::PresentMode;
+use egui_wgpu::wgpu::{self, PresentMode};
 use egui_wgpu::winit::Painter;
-use egui_wgpu::{RendererOptions, WgpuConfiguration, WgpuSetup};
+use egui_wgpu::{RendererOptions, WgpuConfiguration, WgpuSetup, WgpuSetupCreateNew};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event::WindowEvent;
 use winit::event_loop::ActiveEventLoop;
@@ -23,35 +23,44 @@ pub struct Window {
     egui_state: egui_winit::State,
     painter: Painter,
     viewport_id: egui::ViewportId,
+    shown: bool,
 }
 
 impl Window {
-    pub async fn new(
-        event_loop: &ActiveEventLoop,
-        monitor: MonitorHandle,
-        context: egui::Context,
-    ) -> Result<Self, Error> {
+    pub async fn new(event_loop: &ActiveEventLoop, monitor: MonitorHandle) -> Result<Self, Error> {
         let position = monitor.position();
         let size = monitor.size();
-        let window = Arc::new(
-            event_loop.create_window(
-                WinitWindow::default_attributes()
-                    .with_title("Harper")
-                    .with_inner_size(size)
-                    .with_position(position)
-                    .with_resizable(false)
-                    .with_enabled_buttons(WindowButtons::empty())
-                    .with_decorations(false)
-                    .with_transparent(true)
-                    .with_window_level(WindowLevel::AlwaysOnTop)
-                    .with_active(false),
-            )?,
-        );
+        let attributes = WinitWindow::default_attributes()
+            .with_title(crate::branding::APP_NAME)
+            // Stay hidden until we know the GPU can draw a see-through window. An opaque
+            // full-screen overlay would black out the user's screen.
+            .with_visible(false)
+            .with_inner_size(size)
+            .with_position(position)
+            .with_resizable(false)
+            .with_enabled_buttons(WindowButtons::empty())
+            .with_decorations(false)
+            .with_transparent(true)
+            .with_window_level(WindowLevel::AlwaysOnTop)
+            .with_active(false);
+        // Keep the overlay out of the taskbar and Alt+Tab.
+        #[cfg(target_os = "windows")]
+        let attributes = {
+            use winit::platform::windows::WindowAttributesExtWindows;
+            attributes.with_skip_taskbar(true)
+        };
+        let window = Arc::new(event_loop.create_window(attributes)?);
 
         window.set_outer_position(PhysicalPosition::new(position.x, position.y));
         let _ = window.request_inner_size(PhysicalSize::new(size.width, size.height));
         window.set_cursor_hittest(false)?;
-        let viewport_id = egui::ViewportId::from_hash_of(window.id());
+        keep_from_taking_focus(&window);
+        // Each window gets its own egui context, run as egui's standard root viewport, so the
+        // popup and click state it keeps between frames belongs to this window alone.
+        let context = egui::Context::default();
+        // The suggestion card is designed light; keep its text dark when Windows uses dark mode.
+        context.options_mut(|options| options.theme_preference = egui::ThemePreference::Light);
+        let viewport_id = egui::ViewportId::ROOT;
 
         let egui_state = egui_winit::State::new(
             context.clone(),
@@ -62,11 +71,16 @@ impl Window {
             None,
         );
 
+        let setup = overlay_wgpu_setup(event_loop);
+        if !supports_transparency(&setup, window.clone()).await {
+            return Err(Error::NoTransparency);
+        }
+
         let mut painter = Painter::new(
             context,
             WgpuConfiguration {
                 present_mode: PresentMode::Fifo,
-                wgpu_setup: WgpuSetup::from_display_handle(event_loop.owned_display_handle()),
+                wgpu_setup: WgpuSetup::CreateNew(setup),
                 ..Default::default()
             },
             true,
@@ -76,6 +90,7 @@ impl Window {
         painter
             .set_window(viewport_id, Some(window.clone()))
             .await?;
+        window.set_visible(true);
         window.request_redraw();
 
         Ok(Self {
@@ -83,11 +98,20 @@ impl Window {
             egui_state,
             painter,
             viewport_id,
+            shown: true,
         })
     }
 
     pub fn id(&self) -> WindowId {
         self.inner.id()
+    }
+
+    /// Shows or hides the overlay, only telling Windows when that changes.
+    pub fn set_shown(&mut self, shown: bool) {
+        if self.shown != shown {
+            self.shown = shown;
+            show_without_focus(&self.inner, shown);
+        }
     }
 
     pub fn request_redraw(&self) {
@@ -101,6 +125,8 @@ impl Window {
     /// is over an interactive highlight or popup.
     pub fn set_cursor_hittest(&self, enabled: bool) -> Result<(), Error> {
         self.inner.set_cursor_hittest(enabled)?;
+        // winit rebuilds the window's extended style here, dropping the no-activate flag.
+        keep_from_taking_focus(&self.inner);
 
         Ok(())
     }
@@ -142,4 +168,148 @@ impl Window {
             Vec::new(),
         );
     }
+}
+
+/// Picks a GPU setup that can present a see-through window.
+///
+/// On Windows, wgpu's default DX12 swapchain is created straight from the window handle, and that
+/// kind of swapchain is always opaque: the overlay would cover every monitor in black. A swapchain
+/// made from a DirectComposition visual supports per-pixel transparency, and Vulkan or OpenGL
+/// surfaces on Windows do not, so DX12 with a composition visual is the only option there. The
+/// overlay is cheap to draw, so the integrated GPU is preferred to save battery.
+fn overlay_wgpu_setup(event_loop: &ActiveEventLoop) -> WgpuSetupCreateNew {
+    let mut setup = WgpuSetupCreateNew::from_display_handle(event_loop.owned_display_handle());
+    setup.power_preference = wgpu::PowerPreference::LowPower;
+
+    #[cfg(target_os = "windows")]
+    {
+        setup.instance_descriptor.backends = wgpu::Backends::DX12;
+        setup
+            .instance_descriptor
+            .backend_options
+            .dx12
+            .presentation_system = wgpu::Dx12SwapchainKind::DxgiFromVisual;
+    }
+
+    setup
+}
+
+/// Checks, before anything is shown, that the window's surface can blend with the desktop.
+///
+/// Uses a throwaway wgpu instance so the real renderer is untouched; the probe surface is dropped
+/// before the renderer creates its own.
+async fn supports_transparency(setup: &WgpuSetupCreateNew, window: Arc<WinitWindow>) -> bool {
+    let descriptor = &setup.instance_descriptor;
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: descriptor.backends,
+        flags: descriptor.flags,
+        backend_options: descriptor.backend_options.clone(),
+        memory_budget_thresholds: descriptor.memory_budget_thresholds,
+        display: None,
+    });
+
+    let surface = match instance.create_surface(window) {
+        Ok(surface) => surface,
+        Err(error) => {
+            eprintln!("Overlay disabled: could not create a GPU surface: {error}");
+            return false;
+        }
+    };
+
+    let adapter = match instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: setup.power_preference,
+            force_fallback_adapter: false,
+            compatible_surface: Some(&surface),
+        })
+        .await
+    {
+        Ok(adapter) => adapter,
+        Err(error) => {
+            eprintln!("Overlay disabled: no GPU adapter can draw the overlay: {error}");
+            return false;
+        }
+    };
+
+    let alpha_modes = surface.get_capabilities(&adapter).alpha_modes;
+    let transparent = alpha_modes.iter().any(|mode| {
+        matches!(
+            mode,
+            wgpu::CompositeAlphaMode::PreMultiplied | wgpu::CompositeAlphaMode::PostMultiplied
+        )
+    });
+
+    let info = adapter.get_info();
+    tracing::info!(
+        "Overlay GPU: {} ({:?}, {:?}); alpha modes {alpha_modes:?}",
+        info.name,
+        info.backend,
+        info.device_type
+    );
+
+    if !transparent {
+        eprintln!(
+            "Overlay disabled: the {:?} adapter only offers {alpha_modes:?}, which would draw an opaque window",
+            adapter.get_info().backend
+        );
+    }
+
+    transparent
+}
+
+/// Stops clicks on the overlay from activating it. Otherwise clicking an underline takes focus away
+/// from the app being typed in, which makes the checker stop checking that app and close the popup.
+#[cfg(target_os = "windows")]
+fn keep_from_taking_focus(window: &WinitWindow) {
+    use std::ffi::c_void;
+
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GetWindowLongPtrW, SetWindowLongPtrW, WS_EX_NOACTIVATE,
+    };
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    let Ok(handle) = window.window_handle() else {
+        return;
+    };
+    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
+        return;
+    };
+    let hwnd = HWND(handle.hwnd.get() as *mut c_void);
+    let no_activate = WS_EX_NOACTIVATE.0 as isize;
+    unsafe {
+        let style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+        if style & no_activate == 0 {
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style | no_activate);
+        }
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn keep_from_taking_focus(_window: &WinitWindow) {}
+
+/// Shows or hides the overlay without ever activating it, so the app being typed in keeps focus.
+#[cfg(target_os = "windows")]
+fn show_without_focus(window: &WinitWindow, shown: bool) {
+    use std::ffi::c_void;
+
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{SW_HIDE, SW_SHOWNOACTIVATE, ShowWindow};
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    let Ok(handle) = window.window_handle() else {
+        return;
+    };
+    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
+        return;
+    };
+    let hwnd = HWND(handle.hwnd.get() as *mut c_void);
+    unsafe {
+        let _ = ShowWindow(hwnd, if shown { SW_SHOWNOACTIVATE } else { SW_HIDE });
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn show_without_focus(window: &WinitWindow, shown: bool) {
+    window.set_visible(shown);
 }

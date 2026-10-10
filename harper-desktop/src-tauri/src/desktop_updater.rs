@@ -12,6 +12,8 @@ use tauri_plugin_updater::UpdaterExt;
 use tokio::sync::Mutex;
 
 const LATEST_VERSION_URL: &str = "https://writewithharper.com/latestversion";
+/// Upstream's update channel ships a different app, so updates stay off in this fork.
+const UPDATES_ENABLED: bool = false;
 const DAY_MS: u64 = 24 * 60 * 60 * 1000;
 const POLL_INTERVAL: Duration = Duration::from_secs(60);
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
@@ -42,7 +44,7 @@ impl UpdateResult {
         if let Some(latest_version) = latest_version {
             if self.latest_version.as_ref() != Some(&latest_version) {
                 self.message = format!(
-                    "Update installed. Restart Harper to finish before installing version {latest_version}."
+                    "Update installed. Restart Shah Re-Writer to finish before installing version {latest_version}."
                 );
             }
             self.latest_version = Some(latest_version);
@@ -76,6 +78,9 @@ impl DesktopUpdater {
 
     /// Fetch display-only release information without invoking the signed updater flow.
     pub async fn latest_version() -> Result<String, String> {
+        if !UPDATES_ENABLED {
+            return Ok(env!("CARGO_PKG_VERSION").to_string());
+        }
         let response = reqwest::Client::builder()
             .timeout(REQUEST_TIMEOUT)
             .build()
@@ -152,6 +157,14 @@ impl DesktopUpdater {
 /// check eligibility, not the network. Skip missed ticks after sleep rather than catching up.
 /// This task lives with the main process, including when all windows are closed.
 pub fn start_auto_updates(app: AppHandle) {
+    // Harper for Windows does not use upstream Harper's signed update channel: installing an
+    // upstream release would replace this app with a different one. New versions are installed
+    // from this project's GitHub releases instead.
+    if !UPDATES_ENABLED {
+        let _ = app;
+        return;
+    }
+
     tauri::async_runtime::spawn(async move {
         let mut interval = tokio::time::interval(POLL_INTERVAL);
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -175,6 +188,16 @@ async fn check_and_install<R: Runtime>(
     installed_update: Option<UpdateResult>,
 ) -> Result<UpdateResult, String> {
     let current_version = DesktopUpdater::current_version(app);
+    if !UPDATES_ENABLED {
+        return Ok(UpdateResult {
+            status: UpdateStatus::UpToDate,
+            current_version: Some(current_version),
+            latest_version: None,
+            message: "Download new versions of Shah Re-Writer from its GitHub releases page."
+                .into(),
+            error: None,
+        });
+    }
     let update = app
         .updater_builder()
         .timeout(REQUEST_TIMEOUT)
@@ -196,7 +219,7 @@ async fn check_and_install<R: Runtime>(
             status: UpdateStatus::UpToDate,
             current_version: Some(current_version),
             latest_version: None,
-            message: "Harper is up to date.".into(),
+            message: "Shah Re-Writer is up to date.".into(),
             error: None,
         });
     };
@@ -210,7 +233,7 @@ async fn check_and_install<R: Runtime>(
         status: UpdateStatus::Updated,
         current_version: Some(current_version),
         latest_version: Some(normalize_version(&update.version)),
-        message: "Update installed. Restart Harper to finish.".into(),
+        message: "Update installed. Restart Shah Re-Writer to finish.".into(),
         error: None,
     })
 }
@@ -237,7 +260,7 @@ mod tests {
             status: UpdateStatus::Updated,
             current_version: Some("2.11.0".into()),
             latest_version: Some("2.12.0".into()),
-            message: "Update installed. Restart Harper to finish.".into(),
+            message: "Update installed. Restart Shah Re-Writer to finish.".into(),
             error: None,
         }
     }
@@ -387,7 +410,7 @@ mod tests {
                     status: UpdateStatus::UpToDate,
                     current_version: Some("2.11.0".into()),
                     latest_version: None,
-                    message: "Harper is up to date.".into(),
+                    message: "Shah Re-Writer is up to date.".into(),
                     error: None,
                 }))
             })

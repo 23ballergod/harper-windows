@@ -177,7 +177,7 @@ function closeAppPicker() {
 <section>
   <div class="stanza">
     <div class="eyebrow">Selected apps</div>
-    <p class="section-copy">Harper will only watch the apps you enable here.</p>
+    <p class="section-copy">Shah Re-Writer will only watch the apps you enable here.</p>
 
     {#if isIntegrationsLoading}
       <p class="result-summary">Loading integrations...</p>
@@ -236,7 +236,7 @@ function closeAppPicker() {
     <div class="eyebrow">New apps</div>
     <SettingRow top>
       <strong>Enable new apps automatically</strong>
-      <p>Automatically add and enable new apps when Harper encounters them. Disabled apps stay disabled; removed apps can be added again.</p>
+      <p>Automatically add and enable new apps when Shah Re-Writer encounters them. Disabled apps stay disabled; removed apps can be added again.</p>
       <Checkbox
         slot="control"
         appearance="settings"
