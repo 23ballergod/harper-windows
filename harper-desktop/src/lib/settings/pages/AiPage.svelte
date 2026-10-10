@@ -83,7 +83,7 @@ $: selected = models.find((m) => m.id === settings.model);
 <section>
   <div class="stanza">
     <div class="eyebrow">AI Suggestions</div>
-    <p class="section-copy">
+    <p class="section-copy" style="margin-bottom: 20px; position: relative;">
       A small AI model runs entirely on your computer to catch the mistakes rules can't, like
       wrong word choices and awkward grammar. It's free, works offline, and your writing never
       leaves your PC.

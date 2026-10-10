@@ -60,6 +60,10 @@ pub struct RenderState {
     /// `None` means no popup should be rendered.
     highlighted_lint: Option<usize>,
 
+    /// While set, underlines are hidden because the user clicked away from them. Holds what the
+    /// lints looked like then, so they reappear as soon as the text (and so the lints) changes.
+    hidden_for: Option<Vec<(String, usize, usize)>>,
+
     /// Cache for markdown-rendered lint messages so popup redraws do not repeatedly rebuild markdown
     /// resources from scratch.
     markdown_cache: CommonMarkCache,
@@ -86,6 +90,7 @@ impl RenderState {
         let mut state = Self {
             last_lints: None,
             highlighted_lint: None,
+            hidden_for: None,
             markdown_cache: CommonMarkCache::default(),
             ignore_lint,
             add_to_dictionary,
@@ -97,6 +102,13 @@ impl RenderState {
 
     /// Saves successful accessibility reads while retaining the previous lints after a failed read.
     pub fn set_lints(&mut self, lints: Vec<ActionableLint>) {
+        if self
+            .hidden_for
+            .as_ref()
+            .is_some_and(|hidden| *hidden != signature(&lints))
+        {
+            self.hidden_for = None;
+        }
         self.last_lints = Some(lints);
 
         if self
@@ -112,7 +124,23 @@ impl RenderState {
     }
 
     fn lints(&self) -> &[ActionableLint] {
+        if self.hidden_for.is_some() {
+            return &[];
+        }
         self.last_lints.as_deref().unwrap_or_default()
+    }
+
+    /// Hides the current underlines and popup after a click elsewhere, until the lints change.
+    pub fn hide_until_changed(&mut self) {
+        self.highlighted_lint = None;
+        let lints = self.last_lints.as_deref().unwrap_or_default();
+        if !lints.is_empty() {
+            self.hidden_for = Some(signature(lints));
+        }
+    }
+
+    pub fn has_popup(&self) -> bool {
+        self.highlighted_lint.is_some()
     }
 
     /// Updates which lint owns the suggestion popup without exposing render-state internals.
@@ -776,4 +804,19 @@ fn blend(from: egui::Color32, to: egui::Color32, to_weight: f32) -> egui::Color3
         ((f32::from(fg) * from_weight) + (f32::from(tg) * to_weight)) as u8,
         ((f32::from(fb) * from_weight) + (f32::from(tb) * to_weight)) as u8,
     )
+}
+
+/// Identifies a set of lints by their text and position in it, ignoring screen position, so
+/// scrolling keeps hidden underlines hidden but typing brings them back.
+fn signature(lints: &[ActionableLint]) -> Vec<(String, usize, usize)> {
+    lints
+        .iter()
+        .map(|lint| {
+            (
+                lint.source_text.clone(),
+                lint.lint.span.start,
+                lint.lint.span.end,
+            )
+        })
+        .collect()
 }

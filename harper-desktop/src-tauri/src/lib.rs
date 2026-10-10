@@ -128,6 +128,11 @@ pub fn run() {
 }
 
 pub fn run_tauri() {
+    #[cfg(windows)]
+    if !claim_single_instance() {
+        return;
+    }
+
     let async_runtime = Builder::new_multi_thread()
         .enable_all()
         .build()
@@ -545,4 +550,26 @@ fn apply_highlighter_config(
     }
     *debounce_ms.borrow_mut() = config.debounce_ms;
     *linter.borrow_mut() = linter_config;
+}
+
+/// Makes sure only one copy of the app runs. A second launch quits right away, so two copies never
+/// draw two overlays. The mutex is held until this process exits.
+#[cfg(windows)]
+fn claim_single_instance() -> bool {
+    use ::windows::Win32::Foundation::{ERROR_ALREADY_EXISTS, GetLastError};
+    use ::windows::Win32::System::Threading::CreateMutexW;
+    use ::windows::core::w;
+
+    // SAFETY: creates (or opens) a named mutex; the handle is intentionally leaked so it lives
+    // for the whole process.
+    match unsafe { CreateMutexW(None, false, w!("Local\\ShahReWriter.SingleInstance")) } {
+        Ok(_) => {
+            let last_error = unsafe { GetLastError() };
+            last_error != ERROR_ALREADY_EXISTS
+        }
+        Err(error) => {
+            eprintln!("failed to check for another running copy: {error}");
+            true
+        }
+    }
 }

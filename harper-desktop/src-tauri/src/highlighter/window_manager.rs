@@ -20,6 +20,8 @@ use crate::rect::ActionableLint;
 const CONFIG_POLL_INTERVAL: Duration = Duration::from_secs(1);
 /// How long the pointer rests on an underline before its suggestions open, like Grammarly.
 const HOVER_OPEN_DELAY: Duration = Duration::from_millis(400);
+/// How long the pointer can be away from an underline and its card before the card closes.
+const HOVER_CLOSE_DELAY: Duration = Duration::from_millis(700);
 
 /// Owns the winit event loop and the overlay windows created for each monitor.
 ///
@@ -113,6 +115,10 @@ struct WindowManagerApp {
     hovered_lint: Option<usize>,
     /// When the pointer started resting on `hovered_lint`; cleared once its popup has opened.
     hover_started: Option<Instant>,
+    /// When the pointer left the open card and its underline.
+    pointer_away_since: Option<Instant>,
+    /// Whether the left mouse button was down at the last check, to spot new clicks.
+    mouse_was_down: bool,
     cursor_hittest_enabled: bool,
     error: Option<Error>,
 }
@@ -139,6 +145,8 @@ impl WindowManagerApp {
             refresh_config: callbacks.refresh_config,
             hovered_lint: None,
             hover_started: None,
+            pointer_away_since: None,
+            mouse_was_down: false,
             cursor_hittest_enabled: false,
             error: None,
         }
@@ -202,6 +210,31 @@ impl WindowManagerApp {
                 window.request_redraw();
             }
         }
+
+        // Close the card once the pointer has moved off it and its underline for a moment.
+        if matches!(hit_target, HitTarget::None) && self.render_state.has_popup() {
+            let away = *self.pointer_away_since.get_or_insert_with(Instant::now);
+            if away.elapsed() >= HOVER_CLOSE_DELAY {
+                self.render_state.close_popup();
+                self.pointer_away_since = None;
+                for window in &self.windows {
+                    window.request_redraw();
+                }
+            }
+        } else {
+            self.pointer_away_since = None;
+        }
+
+        // A click anywhere outside our underlines and card means the user moved on: hide them
+        // until the text changes, since some apps keep reporting the old text box as focused.
+        let mouse_down = left_mouse_down();
+        if mouse_down && !self.mouse_was_down && matches!(hit_target, HitTarget::None) {
+            self.render_state.hide_until_changed();
+            for window in &self.windows {
+                window.request_redraw();
+            }
+        }
+        self.mouse_was_down = mouse_down;
 
         let should_enable_hittest = !matches!(hit_target, HitTarget::None);
 
@@ -308,4 +341,17 @@ impl ApplicationHandler for WindowManagerApp {
             event_loop.exit();
         }
     }
+}
+
+#[cfg(windows)]
+fn left_mouse_down() -> bool {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+    // SAFETY: GetAsyncKeyState only reads global key state.
+    let state = unsafe { GetAsyncKeyState(VK_LBUTTON.0 as i32) };
+    state < 0
+}
+
+#[cfg(not(windows))]
+fn left_mouse_down() -> bool {
+    false
 }

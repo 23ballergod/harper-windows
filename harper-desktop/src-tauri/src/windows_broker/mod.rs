@@ -98,6 +98,23 @@ impl WindowsBroker {
 
 impl OsBroker for WindowsBroker {
     fn is_harper_desktop(app_id: &str) -> bool {
+        // Windows' own shell processes are never worth checking, so treat them like our own
+        // windows: "Enable new apps automatically" leaves them out.
+        const SYSTEM_SHELL: [&str; 5] = [
+            "explorer.exe",
+            "applicationframehost.exe",
+            "shellexperiencehost.exe",
+            "startmenuexperiencehost.exe",
+            "searchhost.exe",
+        ];
+        let file_name = app_id.rsplit(['\\', '/']).next().unwrap_or(app_id);
+        if SYSTEM_SHELL
+            .iter()
+            .any(|name| file_name.eq_ignore_ascii_case(name))
+        {
+            return true;
+        }
+
         let Ok(executable) = std::env::current_exe()
             .and_then(std::fs::canonicalize)
             .inspect_err(|error| eprintln!("failed to identify Harper executable: {error}"))
