@@ -1,6 +1,6 @@
 [package]
 name = "harper-desktop"
-version = "0.1.0"
+version = "1.0.0"
 description = "Shah Re-Writer: a grammar checker that works in every Windows app."
 edition = "2024"
 publish = false

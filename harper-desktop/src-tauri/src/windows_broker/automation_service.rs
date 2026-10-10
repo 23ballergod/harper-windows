@@ -415,6 +415,11 @@ fn is_editable_text(element: &UIElement) -> bool {
     {
         return false;
     }
+    // Search boxes (Google's, site search) are combo boxes with suggestion dropdowns: short
+    // queries, not writing, and the dropdown keeps changing the text under the underlines.
+    if matches!(element.get_control_type(), Ok(ControlType::ComboBox)) {
+        return false;
+    }
     if let Ok(value) = element.get_pattern::<UIValuePattern>()
         && let Ok(read_only) = value.is_readonly()
     {
@@ -561,6 +566,13 @@ fn apply_suggestion_by_typing(
         Suggestion::InsertAfter(with) => (span.end, 0, with.iter().collect::<String>()),
         Suggestion::Remove => (span.start, span.len(), String::new()),
     };
+    // An empty selection can't be told apart from the caret sitting anywhere else, so for an
+    // insertion select the character before it and type that character back with the insertion.
+    let (start, len, replacement) = if len == 0 && start > 0 {
+        (start - 1, 1, format!("{}{replacement}", chars[start - 1]))
+    } else {
+        (start, len, replacement)
+    };
 
     let pattern: UITextPattern = element.get_pattern().map_err(|e| e.to_string())?;
     let range = range_for_span(&pattern, start as i32, len as i32).map_err(|e| e.to_string())?;
@@ -579,13 +591,43 @@ fn apply_suggestion_by_typing(
         let _ = SetForegroundWindow(HWND(window as *mut std::ffi::c_void));
     }
     let _ = element.set_focus();
-    range.select().map_err(|e| e.to_string())?;
+
+    // Some apps (Chrome especially) finish taking focus a moment later and move the caret, which
+    // would make us type at the cursor instead of over the word. Select, then check the selection
+    // really covers the word before typing; never type if it doesn't.
+    let mut selected = false;
+    for _ in 0..4 {
+        std::thread::sleep(std::time::Duration::from_millis(40));
+        range.select().map_err(|e| e.to_string())?;
+        std::thread::sleep(std::time::Duration::from_millis(30));
+        if selection_matches(&pattern, &expected) {
+            selected = true;
+            break;
+        }
+    }
+    if !selected {
+        return Err("the app did not keep the word selected".into());
+    }
 
     if replacement.is_empty() {
         send_virtual_key(VK_DELETE)
     } else {
         send_unicode_text(&replacement)
     }
+}
+
+/// Whether the control's current selection holds exactly `expected` (an empty selection matches an
+/// empty `expected`, for insertions at the caret).
+fn selection_matches(pattern: &UITextPattern, expected: &str) -> bool {
+    let Ok(ranges) = pattern.get_selection() else {
+        return false;
+    };
+    let [range] = ranges.as_slice() else {
+        return false;
+    };
+    range
+        .get_text(-1)
+        .is_ok_and(|text| normalize_line_breaks(&text) == normalize_line_breaks(expected))
 }
 
 fn normalize_line_breaks(text: &str) -> String {
