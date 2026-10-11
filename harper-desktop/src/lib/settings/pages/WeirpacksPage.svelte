@@ -66,7 +66,7 @@ function commitRenamePack() {
         <div class="stanza">
           <div class="eyebrow">Weirpacks</div>
           <p class="section-copy">
-            Bundles of custom rules that can be layered on top of Harper's built-in checks.
+            Bundles of custom rules that can be layered on top of Shah Re-Writer's built-in checks.
           </p>
           <p class="result-summary">Weirpack installation is not wired yet.</p>
 

@@ -1,0 +1,288 @@
+{"id": "tricky-000", "set": "tricky", "category": "confusable", "source": "Their going to the store after work.", "targets": ["They're going to the store after work."], "has_error": true}
+{"id": "tricky-001", "set": "tricky", "category": "confusable", "source": "I left my keys over their.", "targets": ["I left my keys over there."], "has_error": true}
+{"id": "tricky-002", "set": "tricky", "category": "confusable", "source": "The kids forgot there backpacks.", "targets": ["The kids forgot their backpacks."], "has_error": true}
+{"id": "tricky-003", "set": "tricky", "category": "confusable", "source": "Its going to rain later today.", "targets": ["It's going to rain later today."], "has_error": true}
+{"id": "tricky-004", "set": "tricky", "category": "confusable", "source": "The company changed it's logo.", "targets": ["The company changed its logo."], "has_error": true}
+{"id": "tricky-005", "set": "tricky", "category": "confusable", "source": "Your welcome to join us for dinner.", "targets": ["You're welcome to join us for dinner."], "has_error": true}
+{"id": "tricky-006", "set": "tricky", "category": "confusable", "source": "Is this you're laptop?", "targets": ["Is this your laptop?"], "has_error": true}
+{"id": "tricky-007", "set": "tricky", "category": "confusable", "source": "She is taller then her brother.", "targets": ["She is taller than her brother."], "has_error": true}
+{"id": "tricky-008", "set": "tricky", "category": "confusable", "source": "Finish your homework, than you can play.", "targets": ["Finish your homework, then you can play."], "has_error": true}
+{"id": "tricky-009", "set": "tricky", "category": "confusable", "source": "The new policy will effect everyone.", "targets": ["The new policy will affect everyone."], "has_error": true}
+{"id": "tricky-010", "set": "tricky", "category": "confusable", "source": "The medicine had a strange affect on him.", "targets": ["The medicine had a strange effect on him."], "has_error": true}
+{"id": "tricky-011", "set": "tricky", "category": "confusable", "source": "Don't loose your ticket.", "targets": ["Don't lose your ticket."], "has_error": true}
+{"id": "tricky-012", "set": "tricky", "category": "confusable", "source": "These jeans are too lose around the waist.", "targets": ["These jeans are too loose around the waist."], "has_error": true}
+{"id": "tricky-013", "set": "tricky", "category": "confusable", "source": "I would of called you if I knew.", "targets": ["I would have called you if I knew."], "has_error": true}
+{"id": "tricky-014", "set": "tricky", "category": "confusable", "source": "You should of told me earlier.", "targets": ["You should have told me earlier."], "has_error": true}
+{"id": "tricky-015", "set": "tricky", "category": "confusable", "source": "We could of won that game.", "targets": ["We could have won that game."], "has_error": true}
+{"id": "tricky-016", "set": "tricky", "category": "confusable", "source": "Who's car is parked outside?", "targets": ["Whose car is parked outside?"], "has_error": true}
+{"id": "tricky-017", "set": "tricky", "category": "confusable", "source": "Whose coming to the party tonight?", "targets": ["Who's coming to the party tonight?"], "has_error": true}
+{"id": "tricky-018", "set": "tricky", "category": "confusable", "source": "I want to come to.", "targets": ["I want to come too."], "has_error": true}
+{"id": "tricky-019", "set": "tricky", "category": "confusable", "source": "That movie was to long.", "targets": ["That movie was too long."], "has_error": true}
+{"id": "tricky-020", "set": "tricky", "category": "confusable", "source": "Everyone accept Tom was invited.", "targets": ["Everyone except Tom was invited."], "has_error": true}
+{"id": "tricky-021", "set": "tricky", "category": "confusable", "source": "Please except my apology.", "targets": ["Please accept my apology."], "has_error": true}
+{"id": "tricky-022", "set": "tricky", "category": "confusable", "source": "I need some peace and quite.", "targets": ["I need some peace and quiet."], "has_error": true}
+{"id": "tricky-023", "set": "tricky", "category": "confusable", "source": "The dog wagged it's tail.", "targets": ["The dog wagged its tail."], "has_error": true}
+{"id": "tricky-024", "set": "tricky", "category": "confusable", "source": "We went passed the old school.", "targets": ["We went past the old school."], "has_error": true}
+{"id": "tricky-025", "set": "tricky", "category": "confusable", "source": "I seen him at the mall yesterday.", "targets": ["I saw him at the mall yesterday."], "has_error": true}
+{"id": "tricky-026", "set": "tricky", "category": "confusable", "source": "Can you borrow me a pencil?", "targets": ["Can you lend me a pencil?"], "has_error": true}
+{"id": "tricky-027", "set": "tricky", "category": "confusable", "source": "The principle of the school gave a speech.", "targets": ["The principal of the school gave a speech."], "has_error": true}
+{"id": "tricky-028", "set": "tricky", "category": "confusable", "source": "I'm going to lay down for a nap.", "targets": ["I'm going to lie down for a nap."], "has_error": true}
+{"id": "tricky-029", "set": "tricky", "category": "confusable", "source": "Please advice me on what to do.", "targets": ["Please advise me on what to do."], "has_error": true}
+{"id": "tricky-030", "set": "tricky", "category": "confusable", "source": "She gave me some good advise.", "targets": ["She gave me some good advice."], "has_error": true}
+{"id": "tricky-031", "set": "tricky", "category": "confusable", "source": "We need to breath slowly.", "targets": ["We need to breathe slowly."], "has_error": true}
+{"id": "tricky-032", "set": "tricky", "category": "confusable", "source": "Take a deep breathe.", "targets": ["Take a deep breath."], "has_error": true}
+{"id": "tricky-033", "set": "tricky", "category": "confusable", "source": "I could care less what they think.", "targets": ["I couldn't care less what they think.", "I could not care less what they think."], "has_error": true}
+{"id": "tricky-034", "set": "tricky", "category": "confusable", "source": "This is a mute point now.", "targets": ["This is a moot point now."], "has_error": true}
+{"id": "tricky-035", "set": "tricky", "category": "confusable", "source": "For all intensive purposes, the project is done.", "targets": ["For all intents and purposes, the project is done."], "has_error": true}
+{"id": "tricky-036", "set": "tricky", "category": "confusable", "source": "He made an illicit comment that drew a reaction.", "targets": ["He made an illicit comment that drew a reaction."], "has_error": false}
+{"id": "tricky-037", "set": "tricky", "category": "confusable", "source": "The weather was nice, so we went to the beach.", "targets": ["The weather was nice, so we went to the beach."], "has_error": false}
+{"id": "tricky-038", "set": "tricky", "category": "confusable", "source": "Then we compared it to the older version.", "targets": ["Then we compared it to the older version."], "has_error": false}
+{"id": "tricky-039", "set": "tricky", "category": "confusable", "source": "It's been a long week, and its end can't come soon enough.", "targets": ["It's been a long week, and its end can't come soon enough."], "has_error": false}
+{"id": "tricky-040", "set": "tricky", "category": "confusable", "source": "The stationary bike is in the garage.", "targets": ["The stationary bike is in the garage."], "has_error": false}
+{"id": "tricky-041", "set": "tricky", "category": "confusable", "source": "I need new stationary for my letters.", "targets": ["I need new stationery for my letters."], "has_error": true}
+{"id": "tricky-042", "set": "tricky", "category": "confusable", "source": "She complemented me on my presentation.", "targets": ["She complimented me on my presentation."], "has_error": true}
+{"id": "tricky-043", "set": "tricky", "category": "confusable", "source": "The wine complements the meal nicely.", "targets": ["The wine complements the meal nicely."], "has_error": false}
+{"id": "tricky-044", "set": "tricky", "category": "confusable", "source": "I'm already to go when you are.", "targets": ["I'm all ready to go when you are."], "has_error": true}
+{"id": "tricky-045", "set": "tricky", "category": "confusable", "source": "We where at the park all afternoon.", "targets": ["We were at the park all afternoon."], "has_error": true}
+{"id": "tricky-046", "set": "tricky", "category": "confusable", "source": "Were is the closest gas station?", "targets": ["Where is the closest gas station?"], "has_error": true}
+{"id": "tricky-047", "set": "tricky", "category": "confusable", "source": "I'll meet you their at noon.", "targets": ["I'll meet you there at noon."], "has_error": true}
+{"id": "tricky-048", "set": "tricky", "category": "confusable", "source": "Your going to love this place.", "targets": ["You're going to love this place."], "has_error": true}
+{"id": "tricky-049", "set": "tricky", "category": "confusable", "source": "Let me know weather you can make it.", "targets": ["Let me know whether you can make it."], "has_error": true}
+{"id": "tricky-050", "set": "tricky", "category": "confusable", "source": "I herd the news this morning.", "targets": ["I heard the news this morning."], "has_error": true}
+{"id": "tricky-051", "set": "tricky", "category": "confusable", "source": "She road her bike to work.", "targets": ["She rode her bike to work."], "has_error": true}
+{"id": "tricky-052", "set": "tricky", "category": "confusable", "source": "He past the test with flying colors.", "targets": ["He passed the test with flying colors."], "has_error": true}
+{"id": "tricky-053", "set": "tricky", "category": "confusable", "source": "Its a really good idea.", "targets": ["It's a really good idea."], "has_error": true}
+{"id": "tricky-054", "set": "tricky", "category": "confusable", "source": "Their are three reasons for this.", "targets": ["There are three reasons for this."], "has_error": true}
+{"id": "tricky-055", "set": "tricky", "category": "agreement", "source": "He go to school every day.", "targets": ["He goes to school every day."], "has_error": true}
+{"id": "tricky-056", "set": "tricky", "category": "agreement", "source": "She don't like coffee.", "targets": ["She doesn't like coffee."], "has_error": true}
+{"id": "tricky-057", "set": "tricky", "category": "agreement", "source": "The list of items are on the table.", "targets": ["The list of items is on the table."], "has_error": true}
+{"id": "tricky-058", "set": "tricky", "category": "agreement", "source": "Each of the students have a laptop.", "targets": ["Each of the students has a laptop."], "has_error": true}
+{"id": "tricky-059", "set": "tricky", "category": "agreement", "source": "My friends was waiting outside.", "targets": ["My friends were waiting outside."], "has_error": true}
+{"id": "tricky-060", "set": "tricky", "category": "agreement", "source": "There is many reasons to stay.", "targets": ["There are many reasons to stay."], "has_error": true}
+{"id": "tricky-061", "set": "tricky", "category": "agreement", "source": "Neither of them want to go.", "targets": ["Neither of them wants to go."], "has_error": true}
+{"id": "tricky-062", "set": "tricky", "category": "agreement", "source": "The data shows a clear pattern.", "targets": ["The data shows a clear pattern."], "has_error": false}
+{"id": "tricky-063", "set": "tricky", "category": "agreement", "source": "Everyone in the office were surprised.", "targets": ["Everyone in the office was surprised."], "has_error": true}
+{"id": "tricky-064", "set": "tricky", "category": "agreement", "source": "The results of the study shows a clear trend.", "targets": ["The results of the study show a clear trend."], "has_error": true}
+{"id": "tricky-065", "set": "tricky", "category": "agreement", "source": "It make no sense to me.", "targets": ["It makes no sense to me."], "has_error": true}
+{"id": "tricky-066", "set": "tricky", "category": "agreement", "source": "They was late again.", "targets": ["They were late again."], "has_error": true}
+{"id": "tricky-067", "set": "tricky", "category": "agreement", "source": "One of my friends live in Chicago.", "targets": ["One of my friends lives in Chicago."], "has_error": true}
+{"id": "tricky-068", "set": "tricky", "category": "agreement", "source": "The quality of the photos are amazing.", "targets": ["The quality of the photos is amazing."], "has_error": true}
+{"id": "tricky-069", "set": "tricky", "category": "agreement", "source": "My brother and my sister is coming.", "targets": ["My brother and my sister are coming."], "has_error": true}
+{"id": "tricky-070", "set": "tricky", "category": "agreement", "source": "Does she knows the answer?", "targets": ["Does she know the answer?"], "has_error": true}
+{"id": "tricky-071", "set": "tricky", "category": "agreement", "source": "He doesn't wants to leave.", "targets": ["He doesn't want to leave."], "has_error": true}
+{"id": "tricky-072", "set": "tricky", "category": "agreement", "source": "The news are on at six.", "targets": ["The news is on at six."], "has_error": true}
+{"id": "tricky-073", "set": "tricky", "category": "agreement", "source": "Here is the documents you asked for.", "targets": ["Here are the documents you asked for."], "has_error": true}
+{"id": "tricky-074", "set": "tricky", "category": "agreement", "source": "This kind of problems happen all the time.", "targets": ["These kinds of problems happen all the time.", "This kind of problem happens all the time."], "has_error": true}
+{"id": "tricky-075", "set": "tricky", "category": "agreement", "source": "Neither the manager nor the employees were told.", "targets": ["Neither the manager nor the employees were told."], "has_error": false}
+{"id": "tricky-076", "set": "tricky", "category": "agreement", "source": "The number of complaints has dropped.", "targets": ["The number of complaints has dropped."], "has_error": false}
+{"id": "tricky-077", "set": "tricky", "category": "agreement", "source": "A number of people have asked about it.", "targets": ["A number of people have asked about it."], "has_error": false}
+{"id": "tricky-078", "set": "tricky", "category": "agreement", "source": "Mathematics is my favorite subject.", "targets": ["Mathematics is my favorite subject."], "has_error": false}
+{"id": "tricky-079", "set": "tricky", "category": "agreement", "source": "None of the cake was left.", "targets": ["None of the cake was left."], "has_error": false}
+{"id": "tricky-080", "set": "tricky", "category": "agreement", "source": "Everybody needs a break sometimes.", "targets": ["Everybody needs a break sometimes."], "has_error": false}
+{"id": "tricky-081", "set": "tricky", "category": "agreement", "source": "What she says doesn't matter.", "targets": ["What she says doesn't matter."], "has_error": false}
+{"id": "tricky-082", "set": "tricky", "category": "agreement", "source": "The dog and the cat sleeps together.", "targets": ["The dog and the cat sleep together."], "has_error": true}
+{"id": "tricky-083", "set": "tricky", "category": "agreement", "source": "She have been working here for years.", "targets": ["She has been working here for years."], "has_error": true}
+{"id": "tricky-084", "set": "tricky", "category": "agreement", "source": "We has a meeting at three.", "targets": ["We have a meeting at three."], "has_error": true}
+{"id": "tricky-085", "set": "tricky", "category": "verb form", "source": "I have went there before.", "targets": ["I have gone there before."], "has_error": true}
+{"id": "tricky-086", "set": "tricky", "category": "verb form", "source": "She has wrote three books.", "targets": ["She has written three books."], "has_error": true}
+{"id": "tricky-087", "set": "tricky", "category": "verb form", "source": "He should have took the bus.", "targets": ["He should have taken the bus."], "has_error": true}
+{"id": "tricky-088", "set": "tricky", "category": "verb form", "source": "Yesterday I go to the dentist.", "targets": ["Yesterday I went to the dentist."], "has_error": true}
+{"id": "tricky-089", "set": "tricky", "category": "verb form", "source": "I am agree with you.", "targets": ["I agree with you."], "has_error": true}
+{"id": "tricky-090", "set": "tricky", "category": "verb form", "source": "She didn't went to class.", "targets": ["She didn't go to class."], "has_error": true}
+{"id": "tricky-091", "set": "tricky", "category": "verb form", "source": "I'm looking forward to see you.", "targets": ["I'm looking forward to seeing you."], "has_error": true}
+{"id": "tricky-092", "set": "tricky", "category": "verb form", "source": "He made me to wait for an hour.", "targets": ["He made me wait for an hour."], "has_error": true}
+{"id": "tricky-093", "set": "tricky", "category": "verb form", "source": "We was supposed to leave at noon.", "targets": ["We were supposed to leave at noon."], "has_error": true}
+{"id": "tricky-094", "set": "tricky", "category": "verb form", "source": "The window was broke.", "targets": ["The window was broken."], "has_error": true}
+{"id": "tricky-095", "set": "tricky", "category": "verb form", "source": "I have drank too much coffee.", "targets": ["I have drunk too much coffee."], "has_error": true}
+{"id": "tricky-096", "set": "tricky", "category": "verb form", "source": "She has ate already.", "targets": ["She has eaten already."], "has_error": true}
+{"id": "tricky-097", "set": "tricky", "category": "verb form", "source": "He has began the project.", "targets": ["He has begun the project."], "has_error": true}
+{"id": "tricky-098", "set": "tricky", "category": "verb form", "source": "The bell has rang.", "targets": ["The bell has rung."], "has_error": true}
+{"id": "tricky-099", "set": "tricky", "category": "verb form", "source": "I been working all day.", "targets": ["I've been working all day.", "I have been working all day."], "has_error": true}
+{"id": "tricky-100", "set": "tricky", "category": "verb form", "source": "Can you helping me with this?", "targets": ["Can you help me with this?"], "has_error": true}
+{"id": "tricky-101", "set": "tricky", "category": "verb form", "source": "I will called you tomorrow.", "targets": ["I will call you tomorrow."], "has_error": true}
+{"id": "tricky-102", "set": "tricky", "category": "verb form", "source": "She is go to the gym now.", "targets": ["She is going to the gym now."], "has_error": true}
+{"id": "tricky-103", "set": "tricky", "category": "verb form", "source": "They have been live here since 2010.", "targets": ["They have been living here since 2010."], "has_error": true}
+{"id": "tricky-104", "set": "tricky", "category": "verb form", "source": "If I was you, I would apologize.", "targets": ["If I were you, I would apologize."], "has_error": true}
+{"id": "tricky-105", "set": "tricky", "category": "verb form", "source": "I didn't knew that.", "targets": ["I didn't know that."], "has_error": true}
+{"id": "tricky-106", "set": "tricky", "category": "verb form", "source": "He catched the ball.", "targets": ["He caught the ball."], "has_error": true}
+{"id": "tricky-107", "set": "tricky", "category": "verb form", "source": "She bringed snacks for everyone.", "targets": ["She brought snacks for everyone."], "has_error": true}
+{"id": "tricky-108", "set": "tricky", "category": "verb form", "source": "The prices has rose sharply.", "targets": ["The prices have risen sharply."], "has_error": true}
+{"id": "tricky-109", "set": "tricky", "category": "verb form", "source": "I have seen that movie last week.", "targets": ["I saw that movie last week."], "has_error": true}
+{"id": "tricky-110", "set": "tricky", "category": "verb form", "source": "By the time we arrived, the movie had started.", "targets": ["By the time we arrived, the movie had started."], "has_error": false}
+{"id": "tricky-111", "set": "tricky", "category": "verb form", "source": "She would have liked to come.", "targets": ["She would have liked to come."], "has_error": false}
+{"id": "tricky-112", "set": "tricky", "category": "verb form", "source": "I used to live in Boston.", "targets": ["I used to live in Boston."], "has_error": false}
+{"id": "tricky-113", "set": "tricky", "category": "verb form", "source": "He suggested that she take the job.", "targets": ["He suggested that she take the job."], "has_error": false}
+{"id": "tricky-114", "set": "tricky", "category": "article", "source": "I ate a apple for lunch.", "targets": ["I ate an apple for lunch."], "has_error": true}
+{"id": "tricky-115", "set": "tricky", "category": "article", "source": "She is an university student.", "targets": ["She is a university student."], "has_error": true}
+{"id": "tricky-116", "set": "tricky", "category": "article", "source": "It was an huge mistake.", "targets": ["It was a huge mistake."], "has_error": true}
+{"id": "tricky-117", "set": "tricky", "category": "article", "source": "He waited for a hour.", "targets": ["He waited for an hour."], "has_error": true}
+{"id": "tricky-118", "set": "tricky", "category": "article", "source": "She is honest person.", "targets": ["She is an honest person."], "has_error": true}
+{"id": "tricky-119", "set": "tricky", "category": "article", "source": "I need to buy new car.", "targets": ["I need to buy a new car."], "has_error": true}
+{"id": "tricky-120", "set": "tricky", "category": "article", "source": "Can you close a door behind you?", "targets": ["Can you close the door behind you?"], "has_error": true}
+{"id": "tricky-121", "set": "tricky", "category": "article", "source": "He is best player on the team.", "targets": ["He is the best player on the team."], "has_error": true}
+{"id": "tricky-122", "set": "tricky", "category": "article", "source": "I have a lot of homeworks.", "targets": ["I have a lot of homework."], "has_error": true}
+{"id": "tricky-123", "set": "tricky", "category": "article", "source": "She gave me many advices.", "targets": ["She gave me a lot of advice."], "has_error": true}
+{"id": "tricky-124", "set": "tricky", "category": "article", "source": "We bought some furnitures.", "targets": ["We bought some furniture."], "has_error": true}
+{"id": "tricky-125", "set": "tricky", "category": "article", "source": "I need an information about the course.", "targets": ["I need information about the course.", "I need some information about the course.", "I need a piece of information about the course."], "has_error": true}
+{"id": "tricky-126", "set": "tricky", "category": "article", "source": "It's an one-time offer.", "targets": ["It's a one-time offer."], "has_error": true}
+{"id": "tricky-127", "set": "tricky", "category": "article", "source": "He has an MBA from Stanford.", "targets": ["He has an MBA from Stanford."], "has_error": false}
+{"id": "tricky-128", "set": "tricky", "category": "article", "source": "It was a unique experience.", "targets": ["It was a unique experience."], "has_error": false}
+{"id": "tricky-129", "set": "tricky", "category": "article", "source": "That is an FBI building.", "targets": ["That is an FBI building."], "has_error": false}
+{"id": "tricky-130", "set": "tricky", "category": "article", "source": "She works as an engineer.", "targets": ["She works as an engineer."], "has_error": false}
+{"id": "tricky-131", "set": "tricky", "category": "article", "source": "I read the the whole book.", "targets": ["I read the whole book."], "has_error": true}
+{"id": "tricky-132", "set": "tricky", "category": "article", "source": "This is a a problem.", "targets": ["This is a problem."], "has_error": true}
+{"id": "tricky-133", "set": "tricky", "category": "article", "source": "Less people came than expected.", "targets": ["Fewer people came than expected."], "has_error": true}
+{"id": "tricky-134", "set": "tricky", "category": "article", "source": "There were less cars on the road today.", "targets": ["There were fewer cars on the road today."], "has_error": true}
+{"id": "tricky-135", "set": "tricky", "category": "article", "source": "Much people came to the event.", "targets": ["Many people came to the event."], "has_error": true}
+{"id": "tricky-136", "set": "tricky", "category": "pronoun", "source": "Me and him went to the game.", "targets": ["He and I went to the game."], "has_error": true}
+{"id": "tricky-137", "set": "tricky", "category": "pronoun", "source": "Between you and I, this is a bad idea.", "targets": ["Between you and me, this is a bad idea."], "has_error": true}
+{"id": "tricky-138", "set": "tricky", "category": "pronoun", "source": "Him and his friends were loud.", "targets": ["He and his friends were loud."], "has_error": true}
+{"id": "tricky-139", "set": "tricky", "category": "pronoun", "source": "Please send the files to John and I.", "targets": ["Please send the files to John and me."], "has_error": true}
+{"id": "tricky-140", "set": "tricky", "category": "pronoun", "source": "Her and I are best friends.", "targets": ["She and I are best friends."], "has_error": true}
+{"id": "tricky-141", "set": "tricky", "category": "pronoun", "source": "Us students need more time.", "targets": ["We students need more time."], "has_error": true}
+{"id": "tricky-142", "set": "tricky", "category": "pronoun", "source": "The person which called you is here.", "targets": ["The person who called you is here.", "The person that called you is here."], "has_error": true}
+{"id": "tricky-143", "set": "tricky", "category": "pronoun", "source": "Everyone should bring their own lunch.", "targets": ["Everyone should bring their own lunch."], "has_error": false}
+{"id": "tricky-144", "set": "tricky", "category": "pronoun", "source": "He did it hisself.", "targets": ["He did it himself."], "has_error": true}
+{"id": "tricky-145", "set": "tricky", "category": "pronoun", "source": "They fixed it theirselves.", "targets": ["They fixed it themselves."], "has_error": true}
+{"id": "tricky-146", "set": "tricky", "category": "pronoun", "source": "Myself and Sarah will handle it.", "targets": ["Sarah and I will handle it."], "has_error": true}
+{"id": "tricky-147", "set": "tricky", "category": "pronoun", "source": "She is taller than me.", "targets": ["She is taller than me."], "has_error": false}
+{"id": "tricky-148", "set": "tricky", "category": "pronoun", "source": "John and I are going to the store.", "targets": ["John and I are going to the store."], "has_error": false}
+{"id": "tricky-149", "set": "tricky", "category": "pronoun", "source": "Give it to whoever asks first.", "targets": ["Give it to whoever asks first."], "has_error": false}
+{"id": "tricky-150", "set": "tricky", "category": "comparison", "source": "This one is more better.", "targets": ["This one is better."], "has_error": true}
+{"id": "tricky-151", "set": "tricky", "category": "comparison", "source": "She is the most smartest person I know.", "targets": ["She is the smartest person I know."], "has_error": true}
+{"id": "tricky-152", "set": "tricky", "category": "comparison", "source": "He runs very quick.", "targets": ["He runs very quickly."], "has_error": true}
+{"id": "tricky-153", "set": "tricky", "category": "comparison", "source": "I feel badly about what happened.", "targets": ["I feel badly about what happened."], "has_error": false}
+{"id": "tricky-154", "set": "tricky", "category": "comparison", "source": "She did good on the test.", "targets": ["She did well on the test."], "has_error": true}
+{"id": "tricky-155", "set": "tricky", "category": "comparison", "source": "This is the worse day ever.", "targets": ["This is the worst day ever."], "has_error": true}
+{"id": "tricky-156", "set": "tricky", "category": "comparison", "source": "My phone is more cheap than yours.", "targets": ["My phone is cheaper than yours."], "has_error": true}
+{"id": "tricky-157", "set": "tricky", "category": "comparison", "source": "That was the funnest trip ever.", "targets": ["That was the most fun trip ever."], "has_error": true}
+{"id": "tricky-158", "set": "tricky", "category": "comparison", "source": "He is real smart.", "targets": ["He is really smart."], "has_error": true}
+{"id": "tricky-159", "set": "tricky", "category": "comparison", "source": "The food tastes well.", "targets": ["The food tastes good."], "has_error": true}
+{"id": "tricky-160", "set": "tricky", "category": "comparison", "source": "Of the two options, the first is better.", "targets": ["Of the two options, the first is better."], "has_error": false}
+{"id": "tricky-161", "set": "tricky", "category": "comparison", "source": "He drives slowly in the rain.", "targets": ["He drives slowly in the rain."], "has_error": false}
+{"id": "tricky-162", "set": "tricky", "category": "preposition", "source": "I am interested on this job.", "targets": ["I am interested in this job."], "has_error": true}
+{"id": "tricky-163", "set": "tricky", "category": "preposition", "source": "She is married with a doctor.", "targets": ["She is married to a doctor."], "has_error": true}
+{"id": "tricky-164", "set": "tricky", "category": "preposition", "source": "We arrived to the airport early.", "targets": ["We arrived at the airport early."], "has_error": true}
+{"id": "tricky-165", "set": "tricky", "category": "preposition", "source": "It depends of the weather.", "targets": ["It depends on the weather."], "has_error": true}
+{"id": "tricky-166", "set": "tricky", "category": "preposition", "source": "I'm good in math.", "targets": ["I'm good at math."], "has_error": true}
+{"id": "tricky-167", "set": "tricky", "category": "preposition", "source": "He is afraid from dogs.", "targets": ["He is afraid of dogs."], "has_error": true}
+{"id": "tricky-168", "set": "tricky", "category": "preposition", "source": "We discussed about the plan.", "targets": ["We discussed the plan."], "has_error": true}
+{"id": "tricky-169", "set": "tricky", "category": "preposition", "source": "I will see you in Monday.", "targets": ["I will see you on Monday."], "has_error": true}
+{"id": "tricky-170", "set": "tricky", "category": "preposition", "source": "She was born on 1995.", "targets": ["She was born in 1995."], "has_error": true}
+{"id": "tricky-171", "set": "tricky", "category": "preposition", "source": "Congratulations for your promotion!", "targets": ["Congratulations on your promotion!"], "has_error": true}
+{"id": "tricky-172", "set": "tricky", "category": "preposition", "source": "I'm waiting you outside.", "targets": ["I'm waiting for you outside."], "has_error": true}
+{"id": "tricky-173", "set": "tricky", "category": "preposition", "source": "He insisted to pay for dinner.", "targets": ["He insisted on paying for dinner."], "has_error": true}
+{"id": "tricky-174", "set": "tricky", "category": "preposition", "source": "Where did you get that from?", "targets": ["Where did you get that from?"], "has_error": false}
+{"id": "tricky-175", "set": "tricky", "category": "preposition", "source": "She is responsible for the budget.", "targets": ["She is responsible for the budget."], "has_error": false}
+{"id": "tricky-176", "set": "tricky", "category": "spelling", "source": "I definately want to go.", "targets": ["I definitely want to go."], "has_error": true}
+{"id": "tricky-177", "set": "tricky", "category": "spelling", "source": "We should seperate the files.", "targets": ["We should separate the files."], "has_error": true}
+{"id": "tricky-178", "set": "tricky", "category": "spelling", "source": "I recieved your message.", "targets": ["I received your message."], "has_error": true}
+{"id": "tricky-179", "set": "tricky", "category": "spelling", "source": "That's wierd.", "targets": ["That's weird."], "has_error": true}
+{"id": "tricky-180", "set": "tricky", "category": "spelling", "source": "Thank you for your buisness.", "targets": ["Thank you for your business."], "has_error": true}
+{"id": "tricky-181", "set": "tricky", "category": "spelling", "source": "It was a great acheivement.", "targets": ["It was a great achievement."], "has_error": true}
+{"id": "tricky-182", "set": "tricky", "category": "spelling", "source": "Untill next time.", "targets": ["Until next time."], "has_error": true}
+{"id": "tricky-183", "set": "tricky", "category": "spelling", "source": "I beleive you.", "targets": ["I believe you."], "has_error": true}
+{"id": "tricky-184", "set": "tricky", "category": "spelling", "source": "The goverment announced new rules.", "targets": ["The government announced new rules."], "has_error": true}
+{"id": "tricky-185", "set": "tricky", "category": "spelling", "source": "Let's meet tommorow.", "targets": ["Let's meet tomorrow."], "has_error": true}
+{"id": "tricky-186", "set": "tricky", "category": "spelling", "source": "Occassionally I work from home.", "targets": ["Occasionally I work from home."], "has_error": true}
+{"id": "tricky-187", "set": "tricky", "category": "spelling", "source": "This is neccessary for the trip.", "targets": ["This is necessary for the trip."], "has_error": true}
+{"id": "tricky-188", "set": "tricky", "category": "spelling", "source": "She is a very independant person.", "targets": ["She is a very independent person."], "has_error": true}
+{"id": "tricky-189", "set": "tricky", "category": "spelling", "source": "We need to accomodate more guests.", "targets": ["We need to accommodate more guests."], "has_error": true}
+{"id": "tricky-190", "set": "tricky", "category": "spelling", "source": "The resturant was packed.", "targets": ["The restaurant was packed."], "has_error": true}
+{"id": "tricky-191", "set": "tricky", "category": "spelling", "source": "I'm so embarassed.", "targets": ["I'm so embarrassed."], "has_error": true}
+{"id": "tricky-192", "set": "tricky", "category": "spelling", "source": "I'll do it alot faster next time.", "targets": ["I'll do it a lot faster next time."], "has_error": true}
+{"id": "tricky-193", "set": "tricky", "category": "spelling", "source": "Its a good oppurtunity.", "targets": ["It's a good opportunity."], "has_error": true}
+{"id": "tricky-194", "set": "tricky", "category": "spelling", "source": "The calender is on the wall.", "targets": ["The calendar is on the wall."], "has_error": true}
+{"id": "tricky-195", "set": "tricky", "category": "spelling", "source": "He's a memeber of the club.", "targets": ["He's a member of the club."], "has_error": true}
+{"id": "tricky-196", "set": "tricky", "category": "spelling", "source": "I'm not sure wich one to pick.", "targets": ["I'm not sure which one to pick."], "has_error": true}
+{"id": "tricky-197", "set": "tricky", "category": "spelling", "source": "What color is your favorite?", "targets": ["What color is your favorite?"], "has_error": false}
+{"id": "tricky-198", "set": "tricky", "category": "spelling", "source": "We need to organize the event.", "targets": ["We need to organize the event."], "has_error": false}
+{"id": "tricky-199", "set": "tricky", "category": "spelling", "source": "The theater is downtown.", "targets": ["The theater is downtown."], "has_error": false}
+{"id": "tricky-200", "set": "tricky", "category": "spelling", "source": "I traveled to Canada last year.", "targets": ["I traveled to Canada last year."], "has_error": false}
+{"id": "tricky-201", "set": "tricky", "category": "spelling", "source": "My favourite colour is blue.", "targets": ["My favorite color is blue."], "has_error": true}
+{"id": "tricky-202", "set": "tricky", "category": "spelling", "source": "We need to organise the meeting.", "targets": ["We need to organize the meeting."], "has_error": true}
+{"id": "tricky-203", "set": "tricky", "category": "spelling", "source": "The centre of the city is busy.", "targets": ["The center of the city is busy."], "has_error": true}
+{"id": "tricky-204", "set": "tricky", "category": "spelling", "source": "She analysed the results.", "targets": ["She analyzed the results."], "has_error": true}
+{"id": "tricky-205", "set": "tricky", "category": "spelling", "source": "I'm using Slack, GitHub, and JavaScript today.", "targets": ["I'm using Slack, GitHub, and JavaScript today."], "has_error": false}
+{"id": "tricky-206", "set": "tricky", "category": "spelling", "source": "Let's ship the MVP by Q3.", "targets": ["Let's ship the MVP by Q3."], "has_error": false}
+{"id": "tricky-207", "set": "tricky", "category": "spelling", "source": "My friend Priyanka lives in Hyderabad.", "targets": ["My friend Priyanka lives in Hyderabad."], "has_error": false}
+{"id": "tricky-208", "set": "tricky", "category": "punctuation", "source": "i think we should go.", "targets": ["I think we should go."], "has_error": true}
+{"id": "tricky-209", "set": "tricky", "category": "punctuation", "source": "We visited paris last summer.", "targets": ["We visited Paris last summer."], "has_error": true}
+{"id": "tricky-210", "set": "tricky", "category": "punctuation", "source": "I'll see you on monday.", "targets": ["I'll see you on Monday."], "has_error": true}
+{"id": "tricky-211", "set": "tricky", "category": "punctuation", "source": "Do you speak english?", "targets": ["Do you speak English?"], "has_error": true}
+{"id": "tricky-212", "set": "tricky", "category": "punctuation", "source": "The dog's are barking.", "targets": ["The dogs are barking."], "has_error": true}
+{"id": "tricky-213", "set": "tricky", "category": "punctuation", "source": "I bought three apple's.", "targets": ["I bought three apples."], "has_error": true}
+{"id": "tricky-214", "set": "tricky", "category": "punctuation", "source": "That is my sisters car.", "targets": ["That is my sister's car."], "has_error": true}
+{"id": "tricky-215", "set": "tricky", "category": "punctuation", "source": "The students books are on the desk.", "targets": ["The students' books are on the desk.", "The student's books are on the desk."], "has_error": true}
+{"id": "tricky-216", "set": "tricky", "category": "punctuation", "source": "I dont know what to do.", "targets": ["I don't know what to do."], "has_error": true}
+{"id": "tricky-217", "set": "tricky", "category": "punctuation", "source": "She cant come today.", "targets": ["She can't come today."], "has_error": true}
+{"id": "tricky-218", "set": "tricky", "category": "punctuation", "source": "He wont listen to me.", "targets": ["He won't listen to me."], "has_error": true}
+{"id": "tricky-219", "set": "tricky", "category": "punctuation", "source": "Were going to be late.", "targets": ["We're going to be late."], "has_error": true}
+{"id": "tricky-220", "set": "tricky", "category": "punctuation", "source": "Lets go to the beach.", "targets": ["Let's go to the beach."], "has_error": true}
+{"id": "tricky-221", "set": "tricky", "category": "punctuation", "source": "What time is it.", "targets": ["What time is it?"], "has_error": true}
+{"id": "tricky-222", "set": "tricky", "category": "punctuation", "source": "However we decided to stay.", "targets": ["However, we decided to stay."], "has_error": true}
+{"id": "tricky-223", "set": "tricky", "category": "punctuation", "source": "Thanks for your help , I appreciate it.", "targets": ["Thanks for your help, I appreciate it.", "Thanks for your help; I appreciate it.", "Thanks for your help. I appreciate it."], "has_error": true}
+{"id": "tricky-224", "set": "tricky", "category": "punctuation", "source": "I like apples ,bananas, and grapes.", "targets": ["I like apples, bananas, and grapes."], "has_error": true}
+{"id": "tricky-225", "set": "tricky", "category": "punctuation", "source": "Wait , what did you say?", "targets": ["Wait, what did you say?"], "has_error": true}
+{"id": "tricky-226", "set": "tricky", "category": "punctuation", "source": "I went to the store and I bought milk.", "targets": ["I went to the store and I bought milk."], "has_error": false}
+{"id": "tricky-227", "set": "tricky", "category": "punctuation", "source": "In 2020, we moved to Denver.", "targets": ["In 2020, we moved to Denver."], "has_error": false}
+{"id": "tricky-228", "set": "tricky", "category": "punctuation", "source": "The '90s were a fun decade.", "targets": ["The '90s were a fun decade."], "has_error": false}
+{"id": "tricky-229", "set": "tricky", "category": "punctuation", "source": "She asked, \"Are you coming?\"", "targets": ["She asked, \"Are you coming?\""], "has_error": false}
+{"id": "tricky-230", "set": "tricky", "category": "punctuation", "source": "Its' a great day.", "targets": ["It's a great day."], "has_error": true}
+{"id": "tricky-231", "set": "tricky", "category": "punctuation", "source": "Thank you so much!!", "targets": ["Thank you so much!!"], "has_error": false}
+{"id": "tricky-232", "set": "tricky", "category": "word", "source": "I went to to the store.", "targets": ["I went to the store."], "has_error": true}
+{"id": "tricky-233", "set": "tricky", "category": "word", "source": "She is is very kind.", "targets": ["She is very kind."], "has_error": true}
+{"id": "tricky-234", "set": "tricky", "category": "word", "source": "Can you send me the the report?", "targets": ["Can you send me the report?"], "has_error": true}
+{"id": "tricky-235", "set": "tricky", "category": "word", "source": "I want go home.", "targets": ["I want to go home."], "has_error": true}
+{"id": "tricky-236", "set": "tricky", "category": "word", "source": "She asked me if I could help her with.", "targets": ["She asked me if I could help her.", "She asked me if I could help her with it."], "has_error": true}
+{"id": "tricky-237", "set": "tricky", "category": "word", "source": "He is the one who he called me.", "targets": ["He is the one who called me."], "has_error": true}
+{"id": "tricky-238", "set": "tricky", "category": "word", "source": "We need more time to finish it the project.", "targets": ["We need more time to finish the project."], "has_error": true}
+{"id": "tricky-239", "set": "tricky", "category": "word", "source": "I am very much excited about it.", "targets": ["I am very excited about it.", "I am very much looking forward to it."], "has_error": true}
+{"id": "tricky-240", "set": "tricky", "category": "word", "source": "I had had enough by then.", "targets": ["I had had enough by then."], "has_error": false}
+{"id": "tricky-241", "set": "tricky", "category": "word", "source": "That that is is that that is not is not.", "targets": ["That that is is that that is not is not."], "has_error": false}
+{"id": "tricky-242", "set": "tricky", "category": "messy", "source": "hey can u send me the file when your free", "targets": ["Hey, can you send me the file when you're free?", "hey can you send me the file when you're free", "Hey, can you send me the file when you're free"], "has_error": true}
+{"id": "tricky-243", "set": "tricky", "category": "messy", "source": "i dont think its gonna work tbh", "targets": ["I don't think it's gonna work, tbh.", "I don't think it's going to work, tbh.", "i don't think it's gonna work tbh", "I don't think it's gonna work tbh", "I don't think it's gonna work tbh."], "has_error": true}
+{"id": "tricky-244", "set": "tricky", "category": "messy", "source": "me and my freind are going too the mall later", "targets": ["My friend and I are going to the mall later.", "Me and my friend are going to the mall later.", "me and my friend are going to the mall later"], "has_error": true}
+{"id": "tricky-245", "set": "tricky", "category": "messy", "source": "Their was alot of people at the concert.", "targets": ["There were a lot of people at the concert."], "has_error": true}
+{"id": "tricky-246", "set": "tricky", "category": "messy", "source": "I has went to the store yesterday and buyed milk.", "targets": ["I went to the store yesterday and bought milk."], "has_error": true}
+{"id": "tricky-247", "set": "tricky", "category": "messy", "source": "She dont know were the keys is.", "targets": ["She doesn't know where the keys are."], "has_error": true}
+{"id": "tricky-248", "set": "tricky", "category": "messy", "source": "Thank's for you're help yesterday.", "targets": ["Thanks for your help yesterday."], "has_error": true}
+{"id": "tricky-249", "set": "tricky", "category": "messy", "source": "Could you please reveiw the doc and let me no if theres any issues.", "targets": ["Could you please review the doc and let me know if there are any issues?", "Could you please review the doc and let me know if there are any issues."], "has_error": true}
+{"id": "tricky-250", "set": "tricky", "category": "messy", "source": "Im looking foward to hear from you.", "targets": ["I'm looking forward to hearing from you."], "has_error": true}
+{"id": "tricky-251", "set": "tricky", "category": "messy", "source": "The meeting have been moved to tuesday at 3pm.", "targets": ["The meeting has been moved to Tuesday at 3pm.", "The meeting has been moved to Tuesday at 3 p.m.", "The meeting has been moved to Tuesday at 3 PM."], "has_error": true}
+{"id": "tricky-252", "set": "tricky", "category": "messy", "source": "Its been a while since we talked, hows it going?", "targets": ["It's been a while since we talked. How's it going?", "It's been a while since we talked, how's it going?", "It's been a while since we talked; how's it going?"], "has_error": true}
+{"id": "tricky-253", "set": "tricky", "category": "messy", "source": "Please find attach the report for you're review.", "targets": ["Please find attached the report for your review."], "has_error": true}
+{"id": "tricky-254", "set": "tricky", "category": "messy", "source": "We was suppose to finish this last week.", "targets": ["We were supposed to finish this last week."], "has_error": true}
+{"id": "tricky-255", "set": "tricky", "category": "messy", "source": "can you explain how does this function works", "targets": ["Can you explain how this function works?", "can you explain how this function works"], "has_error": true}
+{"id": "tricky-256", "set": "tricky", "category": "messy", "source": "write me a python script that read a csv file and print the rows", "targets": ["Write me a Python script that reads a CSV file and prints the rows.", "write me a python script that reads a csv file and prints the rows", "Write me a Python script that reads a CSV file and prints the rows"], "has_error": true}
+{"id": "tricky-257", "set": "tricky", "category": "messy", "source": "whats the different between a list and a tuple", "targets": ["What's the difference between a list and a tuple?", "what's the difference between a list and a tuple"], "has_error": true}
+{"id": "tricky-258", "set": "tricky", "category": "messy", "source": "I tryed restarting it but it still dont work.", "targets": ["I tried restarting it, but it still doesn't work."], "has_error": true}
+{"id": "tricky-259", "set": "tricky", "category": "messy", "source": "Sorry for the late reply, I was busy all day.", "targets": ["Sorry for the late reply, I was busy all day."], "has_error": false}
+{"id": "tricky-260", "set": "tricky", "category": "messy", "source": "Can you summarize this article in three bullet points?", "targets": ["Can you summarize this article in three bullet points?"], "has_error": false}
+{"id": "tricky-261", "set": "tricky", "category": "messy", "source": "Let me know if you have any questions.", "targets": ["Let me know if you have any questions."], "has_error": false}
+{"id": "tricky-262", "set": "tricky", "category": "messy", "source": "I'll be there in 10 minutes.", "targets": ["I'll be there in 10 minutes."], "has_error": false}
+{"id": "tricky-263", "set": "tricky", "category": "messy", "source": "Sounds good, see you then!", "targets": ["Sounds good, see you then!"], "has_error": false}
+{"id": "tricky-264", "set": "tricky", "category": "messy", "source": "lol that's hilarious", "targets": ["lol that's hilarious"], "has_error": false}
+{"id": "tricky-265", "set": "tricky", "category": "messy", "source": "ok", "targets": ["ok"], "has_error": false}
+{"id": "tricky-266", "set": "tricky", "category": "messy", "source": "Can we push the call to 4 PM ET?", "targets": ["Can we push the call to 4 PM ET?"], "has_error": false}
+{"id": "tricky-267", "set": "tricky", "category": "messy", "source": "I've attached the slides from today's meeting.", "targets": ["I've attached the slides from today's meeting."], "has_error": false}
+{"id": "tricky-268", "set": "tricky", "category": "clean", "source": "The quarterly report shows that revenue grew by twelve percent, mostly because of strong sales in the Midwest.", "targets": ["The quarterly report shows that revenue grew by twelve percent, mostly because of strong sales in the Midwest."], "has_error": false}
+{"id": "tricky-269", "set": "tricky", "category": "clean", "source": "If you have time this weekend, could you look over my r\u00e9sum\u00e9 before I send it out?", "targets": ["If you have time this weekend, could you look over my r\u00e9sum\u00e9 before I send it out?"], "has_error": false}
+{"id": "tricky-270", "set": "tricky", "category": "clean", "source": "Although the forecast called for rain, the afternoon turned out to be sunny and warm.", "targets": ["Although the forecast called for rain, the afternoon turned out to be sunny and warm."], "has_error": false}
+{"id": "tricky-271", "set": "tricky", "category": "clean", "source": "Whoever finishes first gets to choose where we eat.", "targets": ["Whoever finishes first gets to choose where we eat."], "has_error": false}
+{"id": "tricky-272", "set": "tricky", "category": "clean", "source": "She has lived in New York for ten years, yet she still gets lost in Brooklyn.", "targets": ["She has lived in New York for ten years, yet she still gets lost in Brooklyn."], "has_error": false}
+{"id": "tricky-273", "set": "tricky", "category": "clean", "source": "The data suggest that sleep affects memory more than we thought.", "targets": ["The data suggest that sleep affects memory more than we thought."], "has_error": false}
+{"id": "tricky-274", "set": "tricky", "category": "clean", "source": "I'd rather walk than take the bus when the weather is this nice.", "targets": ["I'd rather walk than take the bus when the weather is this nice."], "has_error": false}
+{"id": "tricky-275", "set": "tricky", "category": "clean", "source": "Not only did he finish the project early, but he also helped two coworkers with theirs.", "targets": ["Not only did he finish the project early, but he also helped two coworkers with theirs."], "has_error": false}
+{"id": "tricky-276", "set": "tricky", "category": "clean", "source": "We can't decide whether to paint the kitchen blue or green.", "targets": ["We can't decide whether to paint the kitchen blue or green."], "has_error": false}
+{"id": "tricky-277", "set": "tricky", "category": "clean", "source": "Having read the instructions twice, I still couldn't assemble the shelf.", "targets": ["Having read the instructions twice, I still couldn't assemble the shelf."], "has_error": false}
+{"id": "tricky-278", "set": "tricky", "category": "clean", "source": "The committee, which meets every Tuesday, voted to approve the new budget.", "targets": ["The committee, which meets every Tuesday, voted to approve the new budget."], "has_error": false}
+{"id": "tricky-279", "set": "tricky", "category": "clean", "source": "There's no way I'm getting up at 5 a.m. on a Saturday.", "targets": ["There's no way I'm getting up at 5 a.m. on a Saturday."], "has_error": false}
+{"id": "tricky-280", "set": "tricky", "category": "clean", "source": "My grandmother's recipe calls for two cups of flour and a pinch of salt.", "targets": ["My grandmother's recipe calls for two cups of flour and a pinch of salt."], "has_error": false}
+{"id": "tricky-281", "set": "tricky", "category": "clean", "source": "The children's museum is free on the first Sunday of every month.", "targets": ["The children's museum is free on the first Sunday of every month."], "has_error": false}
+{"id": "tricky-282", "set": "tricky", "category": "clean", "source": "It's important that every employee complete the training by Friday.", "targets": ["It's important that every employee complete the training by Friday."], "has_error": false}
+{"id": "tricky-283", "set": "tricky", "category": "clean", "source": "He laid the book on the table and then lay down on the couch.", "targets": ["He laid the book on the table and then lay down on the couch."], "has_error": false}
+{"id": "tricky-284", "set": "tricky", "category": "clean", "source": "Fewer than ten people showed up, which was less than we had hoped for.", "targets": ["Fewer than ten people showed up, which was less than we had hoped for."], "has_error": false}
+{"id": "tricky-285", "set": "tricky", "category": "clean", "source": "Their house is the one over there, and they're home right now.", "targets": ["Their house is the one over there, and they're home right now."], "has_error": false}
+{"id": "tricky-286", "set": "tricky", "category": "clean", "source": "The CEO said the merger would affect about 300 jobs.", "targets": ["The CEO said the merger would affect about 300 jobs."], "has_error": false}
+{"id": "tricky-287", "set": "tricky", "category": "clean", "source": "Run the tests again after you update the dependencies.", "targets": ["Run the tests again after you update the dependencies."], "has_error": false}

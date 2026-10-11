@@ -1,0 +1,114 @@
+name: AI checker
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: harper-ai
+      - name: Unit tests
+        run: cargo test -p harper-ai --release
+
+  benchmark:
+    name: Grammar benchmark (${{ matrix.model }} model)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The app's own models, by name.
+          # Candidates can be added as entries whose args are "<file.gguf> <tokenizer.json>".
+          - model: Fast
+            repo: unsloth/Qwen3-1.7B-GGUF
+            file: Qwen3-1.7B-Q4_K_M.gguf
+            tok_repo: Qwen/Qwen3-1.7B
+            tok_file: qwen3-tokenizer.json
+            args: Fast
+          - model: Accurate
+            repo: unsloth/Qwen3-4B-Instruct-2507-GGUF
+            file: Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+            tok_repo: Qwen/Qwen3-1.7B
+            tok_file: qwen3-tokenizer.json
+            args: Accurate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: harper-ai
+      - name: Cache model
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: ${{ matrix.file }}-v1
+      - name: Download model
+        run: |
+          mkdir -p models
+          [ -f models/${{ matrix.file }} ] || curl -fsSL -o models/${{ matrix.file }} https://huggingface.co/${{ matrix.repo }}/resolve/main/${{ matrix.file }}
+          [ -f models/${{ matrix.tok_file }} ] || curl -fsSL -o models/${{ matrix.tok_file }} https://huggingface.co/${{ matrix.tok_repo }}/resolve/main/tokenizer.json
+          ls -la models
+      - name: Record exact files
+        run: |
+          {
+            echo "### Files"
+            for r in "${{ matrix.repo }}" "${{ matrix.tok_repo }}"; do
+              echo "- $r revision $(curl -fsSL https://huggingface.co/api/models/$r | jq -r .sha)"
+            done
+            for f in models/${{ matrix.file }} models/${{ matrix.tok_file }}; do
+              echo "- $(basename $f): $(stat -c %s $f) bytes, sha256 $(sha256sum $f | cut -d' ' -f1)"
+            done
+          } | tee files.md
+      - name: Model smoke test
+        if: matrix.model == 'Fast' || matrix.model == 'Accurate'
+        run: cargo run -p harper-ai --release --example correct -- models ${{ matrix.model }} | tee smoke-${{ matrix.model }}.txt
+      - name: Benchmark on the tricky set
+        run: |
+          cargo run -p harper-ai --release --example benchmark -- models ${{ matrix.args }} 2>/dev/null | tee "benchmark-${{ matrix.model }}.md"
+          cat files.md >> "benchmark-${{ matrix.model }}.md"
+          cat "benchmark-${{ matrix.model }}.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish results as a check
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            [ -f "benchmark-${{ matrix.model }}.md" ] && cat "benchmark-${{ matrix.model }}.md"
+            echo
+            echo '### Smoke test'
+            echo '```'
+            [ -f "smoke-${{ matrix.model }}.txt" ] && tail -c 20000 "smoke-${{ matrix.model }}.txt"
+            echo '```'
+          } > results.md
+          head -c 60000 results.md > summary.md
+          jq -n --arg name "Benchmark results (${{ matrix.model }})" \
+                --arg sha "${{ github.event.pull_request.head.sha || github.sha }}" \
+                --rawfile summary summary.md \
+                '{name: $name, head_sha: $sha, status: "completed", conclusion: "neutral",
+                  output: {title: $name, summary: $summary}}' \
+            | gh api repos/${{ github.repository }}/check-runs --input -
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ strategy.job-index }}
+          path: benchmark-*.md

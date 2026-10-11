@@ -8,7 +8,7 @@ import AppIcon from '../components/AppIcon.svelte';
 
 /** Slide identities determine setup gates; only the welcome and test drive need no action. */
 type OnboardingSlide = {
-	id: 'welcome' | 'accessibility' | 'integration' | 'test-drive' | 'ready';
+	id: 'welcome' | 'accessibility' | 'integration' | 'ai' | 'test-drive' | 'ready';
 	title: string;
 	lede: string;
 };
@@ -17,27 +17,51 @@ const allSlides: OnboardingSlide[] = [
 	{
 		id: 'welcome',
 		title: 'Welcome',
-		lede: "Before you can start writing with Harper, we need to do a little housekeeping.\n\nDon't worry, this should only take a minute.",
+		lede: "Before you can start writing with Shah Re-Writer, we need to do a little housekeeping.\n\nDon't worry, this should only take a minute.",
 	},
 	{
 		id: 'accessibility',
 		title: 'Accessibility',
-		lede: 'To be able to read and write text to your favorite text editors, you need to grant Harper the permission to do so.\n\nNone of your text will leave your device.',
+		lede: 'To be able to read and write text to your favorite text editors, you need to grant Shah Re-Writer the permission to do so.\n\nNone of your text will leave your device.',
 	},
 	{
 		id: 'integration',
 		title: 'Enable TextEdit',
-		lede: 'The Harper community is constantly adding support for new text editors. If we haven\'t marked a text editor as "supported" already, you can override this option yourself.\n\nLet\'s try that now. Go ahead and enable "TextEdit". Once you do, Harper will start checking your grammar in that app.',
+		lede: 'The Shah Re-Writer community is constantly adding support for new text editors. If we haven\'t marked a text editor as "supported" already, you can override this option yourself.\n\nLet\'s try that now. Go ahead and enable "TextEdit". Once you do, Shah Re-Writer will start checking your grammar in that app.',
 	},
 	{
 		id: 'test-drive',
-		title: 'Try Harper',
-		lede: 'Now that you\'ve enabled TextEdit, go ahead and open it. Write something like, "This is an test."\n\nYou should see Harper jump in to fix that mistake.',
+		title: 'Try Shah Re-Writer',
+		lede: 'Now that you\'ve enabled TextEdit, go ahead and open it. Write something like, "This is an test."\n\nYou should see Shah Re-Writer jump in to fix that mistake.',
 	},
 	{
 		id: 'ready',
 		title: 'Ready',
-		lede: "Okay! Now we're ready to go.\n\nDon't let your dreams be dreams. Write anything, anywhere and Harper will be there to catch your mistakes.",
+		lede: "Okay! Now we're ready to go.\n\nDon't let your dreams be dreams. Write anything, anywhere and Shah Re-Writer will be there to catch your mistakes.",
+	},
+];
+
+/** Windows checks every app by default, like Grammarly, so there is no per-app setup step. */
+const windowsSlides: OnboardingSlide[] = [
+	{
+		id: 'welcome',
+		title: 'Welcome',
+		lede: 'Shah Re-Writer checks your writing in every app you type in: Chrome, the Claude app, Word, Notepad and more.\n\nEverything runs on your PC. None of your text leaves your device.',
+	},
+	{
+		id: 'ai',
+		title: 'AI Suggestions',
+		lede: 'Shah Re-Writer catches most mistakes instantly. For deeper fixes, like wrong word choices and awkward grammar, it can also use a free AI model that runs on your PC.\n\nThe model is a one-time download of about 1.1 GB. You can skip this and download it later from Settings.',
+	},
+	{
+		id: 'test-drive',
+		title: 'Try Shah Re-Writer',
+		lede: 'Open Notepad (or any text box in Chrome) and write something like, "This is an test."\n\nYou should see Shah Re-Writer underline the mistake. Click the underline to fix it.',
+	},
+	{
+		id: 'ready',
+		title: 'Ready',
+		lede: "You're all set. Shah Re-Writer lives in the system tray, next to the clock.\n\nWrite anything, anywhere and Shah Re-Writer will be there to catch your mistakes.",
 	},
 ];
 
@@ -57,14 +81,17 @@ let isLaunchingTextEdit = false;
 let testDriveError = '';
 let isCompletingOnboarding = false;
 let onboardingError = '';
+let aiDownloadStarted = false;
+let aiError = '';
 
-$: slides = allSlides.filter((slide) => slide.id !== 'accessibility' || isMacOS);
+$: slides = isMacOS ? allSlides : windowsSlides;
 $: textEditIntegration = integrations.find((item) => item.bundle_id === 'com.apple.TextEdit');
 $: isTextEditEnabled = textEditIntegration?.enabled === true;
 $: accessibilityReady =
 	(!isMacOS || accessibilityStatus === 'Granted') && !isPreparingService && !setupError;
 $: integrationReady =
-	isTextEditEnabled && !isLoadingIntegrations && !isEnablingTextEdit && !integrationsError;
+	!isMacOS ||
+	(isTextEditEnabled && !isLoadingIntegrations && !isEnablingTextEdit && !integrationsError);
 $: nextDisabled = !canAdvance(slides[step].id, accessibilityReady, integrationReady, isMacOS);
 
 onMount(() => {
@@ -118,13 +145,24 @@ async function enableTextEditForSetup() {
 	}
 }
 
+async function downloadAiModel() {
+	aiError = '';
+	try {
+		await Client.setAiSettings({ enabled: true, model: 'Fast' });
+		await Client.downloadAiModel('Fast');
+		aiDownloadStarted = true;
+	} catch (error) {
+		aiError = `Unable to start the download: ${error}`;
+	}
+}
+
 async function launchTextEditForTestDrive() {
 	if (!accessibilityReady || !integrationReady || isLaunchingTextEdit) return;
 	isLaunchingTextEdit = true;
 	testDriveError = '';
 
 	try {
-		await Client.launchApp('com.apple.TextEdit');
+		await Client.launchApp(isMacOS ? 'com.apple.TextEdit' : 'notepad.exe');
 	} catch (error) {
 		testDriveError = `Unable to launch TextEdit: ${error}`;
 	} finally {
@@ -148,7 +186,7 @@ async function completeOnboarding() {
 	}
 }
 
-/** Start Harper on every platform, checking or requesting Accessibility permission only on macOS. */
+/** Start Shah Re-Writer on every platform, checking or requesting Accessibility permission only on macOS. */
 async function prepareService(request = false) {
 	isPreparingService = true;
 	setupError = '';
@@ -168,10 +206,10 @@ async function prepareService(request = false) {
 			(!isMacOS || accessibilityStatus === 'Granted') &&
 			!(await Client.startHighlighterService())
 		) {
-			throw new Error('The Harper service did not start. Please try again.');
+			throw new Error('The Shah Re-Writer service did not start. Please try again.');
 		}
 	} catch (error) {
-		setupError = `Unable to ${isMacOS ? 'set up Accessibility' : 'start Harper'}: ${error}`;
+		setupError = `Unable to ${isMacOS ? 'set up Accessibility' : 'start Shah Re-Writer'}: ${error}`;
 	} finally {
 		isPreparingService = false;
 	}
@@ -192,12 +230,12 @@ async function prepareService(request = false) {
     {#if slides[step].id === 'welcome' && !isMacOS}
       {#if isPreparingService}
         <div class="onboarding-actions">
-          <p role="status">Starting Harper...</p>
+          <p role="status">Starting Shah Re-Writer...</p>
         </div>
       {:else if setupError}
         <div class="onboarding-actions">
           <p role="alert">{setupError}</p>
-          <Button on:click={() => prepareService()}>Retry Starting Harper</Button>
+          <Button on:click={() => prepareService()}>Retry Starting Shah Re-Writer</Button>
         </div>
       {/if}
     {:else if slides[step].id === 'accessibility'}
@@ -206,11 +244,11 @@ async function prepareService(request = false) {
           {#if isPreparingService}
             Checking Accessibility access...
           {:else if accessibilityReady}
-            Accessibility access granted. Harper is ready to check your writing.
+            Accessibility access granted. Shah Re-Writer is ready to check your writing.
           {:else if accessibilityStatus === 'Unsupported'}
             Accessibility setup is unavailable on this platform. Setup cannot continue here.
           {:else if hasRequestedAccessibility && accessibilityStatus === 'NotGranted'}
-            Enable Harper in System Settings → Privacy &amp; Security → Accessibility, then recheck permission.
+            Enable Shah Re-Writer in System Settings → Privacy &amp; Security → Accessibility, then recheck permission.
           {/if}
         </p>
         {#if setupError}
@@ -241,7 +279,7 @@ async function prepareService(request = false) {
           {:else if isEnablingTextEdit}
             Enabling TextEdit...
           {:else if integrationReady}
-            TextEdit enabled. Harper will check your writing in this app.
+            TextEdit enabled. Shah Re-Writer will check your writing in this app.
           {/if}
         </p>
         {#if integrationsError}
@@ -261,13 +299,25 @@ async function prepareService(request = false) {
           <strong>TextEdit</strong>
         </div>
       </div>
+    {:else if slides[step].id === 'ai'}
+      <div class="onboarding-actions">
+        {#if aiDownloadStarted}
+          <p role="status">Downloading in the background. AI suggestions turn on when it finishes.</p>
+        {/if}
+        {#if aiError}
+          <p role="alert">{aiError}</p>
+        {/if}
+        <Button disabled={aiDownloadStarted} on:click={downloadAiModel}>
+          {aiDownloadStarted ? 'Downloading...' : 'Download AI Model'}
+        </Button>
+      </div>
     {:else if slides[step].id === 'test-drive'}
       <div class="onboarding-actions">
         {#if testDriveError}
           <p role="alert">{testDriveError}</p>
         {/if}
         <Button disabled={isLaunchingTextEdit} on:click={launchTextEditForTestDrive}>
-          {isLaunchingTextEdit ? 'Launching...' : 'Launch TextEdit'}
+          {isLaunchingTextEdit ? 'Launching...' : isMacOS ? 'Launch TextEdit' : 'Open Notepad'}
         </Button>
       </div>
     {:else if slides[step].id === 'ready'}

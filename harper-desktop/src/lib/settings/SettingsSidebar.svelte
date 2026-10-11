@@ -13,6 +13,7 @@ import { FOOTER_NAV_ITEMS, MAIN_NAV_ITEMS, type SectionId } from './settings-dat
 
 const SECTION_ICONS: Record<SectionId, typeof GearIcon> = {
 	general: GearIcon,
+	ai: QuillIcon,
 	writing: QuillIcon,
 	dictionary: BookIcon,
 	shortcuts: KeyIcon,

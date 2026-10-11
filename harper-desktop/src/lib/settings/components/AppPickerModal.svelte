@@ -101,7 +101,7 @@ function submit() {
   >
     <div class="modal-head">
       <strong>Add application</strong>
-      <span>Enter the app bundle ID Harper should watch.</span>
+      <span>Enter the app bundle ID Shah Re-Writer should watch.</span>
     </div>
     <div class="modal-search">
       <SearchIcon className="settings-icon" />

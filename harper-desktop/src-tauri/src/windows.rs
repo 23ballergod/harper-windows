@@ -1,7 +1,9 @@
-//! Functions to manage the main windows involved in Harper Desktop
+//! Functions to manage the app's main windows.
 
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
-use tauri_plugin_opener::OpenerExt;
+#[cfg(target_os = "macos")]
+use tauri::AppHandle;
+use tauri::{Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+#[cfg(target_os = "macos")]
 use tracing::error;
 
 /// Synchronize macOS Dock visibility with the application's open windows.
@@ -82,7 +84,7 @@ pub fn show_editor_window(app: &tauri::AppHandle) -> tauri::Result<()> {
     }
 
     let window = WebviewWindowBuilder::new(app, "editor", WebviewUrl::App("index.html".into()))
-        .title("Harper")
+        .title(crate::branding::APP_NAME)
         .inner_size(800.0, 600.0)
         .visible(false)
         .build()?;
@@ -97,7 +99,7 @@ pub fn show_settings_window(app: &tauri::AppHandle) -> tauri::Result<()> {
     }
 
     let window = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
-        .title("Harper Settings")
+        .title(&format!("{} Settings", crate::branding::APP_NAME))
         .inner_size(920.0, 680.0)
         .min_inner_size(780.0, 520.0)
         .center()
@@ -105,15 +107,4 @@ pub fn show_settings_window(app: &tauri::AppHandle) -> tauri::Result<()> {
         .build()?;
 
     show_window(window)
-}
-
-/// Open the browser to an issue report page.
-pub fn open_issue_report(app: &AppHandle) {
-    let _ = app
-        .opener()
-        .open_url(
-            "https://github.com/Automattic/harper/issues/new/choose",
-            None::<&str>,
-        )
-        .inspect_err(|err| error!("failed to open issue report URL: {err}"));
 }
