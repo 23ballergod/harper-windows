@@ -3,7 +3,7 @@ import { Button, Checkbox, CheckIcon, SettingRow } from 'components';
 import { onDestroy, onMount } from 'svelte';
 import { type AiModelId, type AiModelView, type AiSettings, Client } from '$lib/client';
 
-let settings: AiSettings = { enabled: true, model: 'Fast' };
+let settings: AiSettings = { enabled: true, model: 'Accurate' };
 let models: AiModelView[] = [];
 let isLoading = true;
 let error = '';

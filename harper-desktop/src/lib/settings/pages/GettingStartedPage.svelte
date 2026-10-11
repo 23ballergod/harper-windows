@@ -51,7 +51,7 @@ const windowsSlides: OnboardingSlide[] = [
 	{
 		id: 'ai',
 		title: 'AI Suggestions',
-		lede: 'Shah Re-Writer catches most mistakes instantly. For deeper fixes, like wrong word choices and awkward grammar, it can also use a free AI model that runs on your PC.\n\nThe model is a one-time download of about 1.1 GB. You can skip this and download it later from Settings.',
+		lede: 'Shah Re-Writer catches most mistakes instantly. For deeper fixes, like wrong word choices and awkward grammar, it can also use a free AI model that runs on your PC.\n\nThe model is a one-time download of about 2.5 GB. You can skip this and download it later from Settings.',
 	},
 	{
 		id: 'test-drive',
@@ -148,8 +148,8 @@ async function enableTextEditForSetup() {
 async function downloadAiModel() {
 	aiError = '';
 	try {
-		await Client.setAiSettings({ enabled: true, model: 'Fast' });
-		await Client.downloadAiModel('Fast');
+		await Client.setAiSettings({ enabled: true, model: 'Accurate' });
+		await Client.downloadAiModel('Accurate');
 		aiDownloadStarted = true;
 	} catch (error) {
 		aiError = `Unable to start the download: ${error}`;
