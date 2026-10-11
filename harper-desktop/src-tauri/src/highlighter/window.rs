@@ -268,7 +268,8 @@ fn keep_from_taking_focus(window: &WinitWindow) {
 
     use windows::Win32::Foundation::HWND;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GWL_EXSTYLE, GetWindowLongPtrW, SetWindowLongPtrW, WS_EX_NOACTIVATE,
+        GWL_EXSTYLE, GetWindowLongPtrW, SetWindowLongPtrW, WS_EX_APPWINDOW, WS_EX_NOACTIVATE,
+        WS_EX_TOOLWINDOW,
     };
     use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
 
@@ -279,11 +280,15 @@ fn keep_from_taking_focus(window: &WinitWindow) {
         return;
     };
     let hwnd = HWND(handle.hwnd.get() as *mut c_void);
-    let no_activate = WS_EX_NOACTIVATE.0 as isize;
+    // A tool window never gets a taskbar button, even when shown again; otherwise the taskbar
+    // briefly makes room for one each time the underlines appear.
+    let wanted = (WS_EX_NOACTIVATE.0 | WS_EX_TOOLWINDOW.0) as isize;
+    let unwanted = WS_EX_APPWINDOW.0 as isize;
     unsafe {
         let style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-        if style & no_activate == 0 {
-            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style | no_activate);
+        let new_style = (style | wanted) & !unwanted;
+        if new_style != style {
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, new_style);
         }
     }
 }
