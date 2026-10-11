@@ -200,6 +200,7 @@ pub fn run_tauri() {
                 .plugin(tauri_plugin_updater::Builder::new().build())?;
 
             set_up_tray_menu(app.handle())?;
+            watch_highlighter(app.handle().clone());
             #[cfg(windows)]
             listen_for_show_settings(app.handle().clone());
             warm_app_search_cache(app.handle().clone());
@@ -617,4 +618,24 @@ fn claim_single_instance() -> bool {
             true
         }
     }
+}
+
+/// Brings the underlines back if their process crashes, at most a few times per hour so a crash
+/// loop can't keep the PC busy.
+fn watch_highlighter(app: tauri::AppHandle) {
+    std::thread::spawn(move || {
+        let mut restarts: Vec<std::time::Instant> = Vec::new();
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(5));
+            restarts.retain(|at| at.elapsed() < std::time::Duration::from_secs(3600));
+            if restarts.len() >= 5 {
+                continue;
+            }
+            let service = app.state::<HighlighterService>();
+            if service.restart_if_crashed() {
+                error!("Underline process stopped unexpectedly; restarted it");
+                restarts.push(std::time::Instant::now());
+            }
+        }
+    });
 }

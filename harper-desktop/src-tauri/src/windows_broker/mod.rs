@@ -212,9 +212,8 @@ impl OsBroker for WindowsBroker {
     fn cursor_position(&self) -> Option<Pos2> {
         let mut point = POINT::default();
 
-        unsafe {
-            GetCursorPos(&mut point).unwrap();
-        }
+        // Fails with "Access is denied" while the lock screen or an admin prompt is up.
+        unsafe { GetCursorPos(&mut point) }.ok()?;
 
         let monitor_scale = get_focused_monitor_scale();
 

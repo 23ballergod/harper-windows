@@ -5,7 +5,10 @@ use crate::config::Config;
 use highlighter_worker::HighlighterWorker;
 use std::{
     io,
-    sync::{Arc, Mutex as StdMutex},
+    sync::{
+        Arc, Mutex as StdMutex,
+        atomic::{AtomicBool, Ordering},
+    },
 };
 use tokio::sync::Mutex;
 
@@ -15,6 +18,8 @@ use tokio::sync::Mutex;
 pub struct HighlighterService {
     config: Arc<Mutex<Config>>,
     worker: StdMutex<Option<HighlighterWorker>>,
+    /// Whether the user wants underlines on; a worker that died while this is set gets restarted.
+    wanted: AtomicBool,
 }
 
 impl HighlighterService {
@@ -25,11 +30,13 @@ impl HighlighterService {
         Self {
             config,
             worker: StdMutex::new(None),
+            wanted: AtomicBool::new(false),
         }
     }
 
     /// Starts the highlighter worker if it is not already running.
     pub fn start(&self) -> io::Result<bool> {
+        self.wanted.store(true, Ordering::Relaxed);
         self.reap_finished_worker();
 
         let mut worker = self
@@ -47,6 +54,7 @@ impl HighlighterService {
 
     /// Stops the highlighter worker if one is running.
     pub fn stop(&self) -> bool {
+        self.wanted.store(false, Ordering::Relaxed);
         let worker = self
             .worker
             .lock()
@@ -80,6 +88,16 @@ impl HighlighterService {
             .lock()
             .expect("highlighter service lock poisoned")
             .is_some()
+    }
+
+    /// Restarts the worker if it stopped on its own (for example after a crash) while wanted.
+    /// Returns whether a restart was attempted.
+    pub fn restart_if_crashed(&self) -> bool {
+        if !self.wanted.load(Ordering::Relaxed) || self.is_running() {
+            return false;
+        }
+        let _ = self.start();
+        true
     }
 
     /// Joins and removes a worker whose thread has already exited.
