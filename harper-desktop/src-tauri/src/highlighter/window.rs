@@ -29,7 +29,10 @@ pub struct Window {
 impl Window {
     pub async fn new(event_loop: &ActiveEventLoop, monitor: MonitorHandle) -> Result<Self, Error> {
         let position = monitor.position();
-        let size = monitor.size();
+        // One pixel short of the full monitor: Windows treats a topmost window that covers the
+        // whole screen as a full-screen app and hides or resizes the taskbar while it is shown.
+        let full = monitor.size();
+        let size = PhysicalSize::new(full.width, full.height.saturating_sub(1));
         let attributes = WinitWindow::default_attributes()
             .with_title(crate::branding::APP_NAME)
             // Stay hidden until we know the GPU can draw a see-through window. An opaque
