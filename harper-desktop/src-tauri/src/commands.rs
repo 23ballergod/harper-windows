@@ -469,7 +469,7 @@ fn set_ai_settings(settings: crate::ai::AiSettings) -> Result<(), String> {
 
 #[tauri::command]
 fn get_ai_models(downloads: State<'_, crate::ai::AiDownloads>) -> Vec<AiModelView> {
-    [harper_ai::AiModel::Accurate]
+    [harper_ai::AiModel::Fast, harper_ai::AiModel::Accurate]
         .into_iter()
         .map(|model| AiModelView {
             id: model,

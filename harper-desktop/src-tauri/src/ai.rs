@@ -23,7 +23,7 @@ impl Default for AiSettings {
     fn default() -> Self {
         Self {
             enabled: true,
-            model: AiModel::Accurate,
+            model: AiModel::Fast,
         }
     }
 }
@@ -36,12 +36,7 @@ impl AiSettings {
     pub fn load() -> Self {
         Self::path()
             .and_then(|p| std::fs::read_to_string(p).ok())
-            .and_then(|s| serde_json::from_str::<Self>(&s).ok())
-            .map(|settings| Self {
-                // Only the most accurate model is offered now; move older Fast picks over.
-                model: AiModel::Accurate,
-                ..settings
-            })
+            .and_then(|s| serde_json::from_str(&s).ok())
             .unwrap_or_default()
     }
 
