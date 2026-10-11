@@ -70,6 +70,8 @@ pub struct ModelState {
 #[derive(Default)]
 pub struct AiDownloads {
     states: std::sync::Mutex<HashMap<AiModel, ModelState>>,
+    /// Models whose running download should stop and throw away what it has so far.
+    cancelled: std::sync::Mutex<std::collections::HashSet<AiModel>>,
 }
 
 impl AiDownloads {
@@ -103,6 +105,7 @@ impl AiDownloads {
             if state.downloading {
                 return Ok(());
             }
+            self.cancelled.lock().unwrap().remove(&model);
             *state = ModelState {
                 downloading: true,
                 total_bytes: model.files().iter().map(|f| f.bytes).sum(),
@@ -111,10 +114,18 @@ impl AiDownloads {
         }
 
         let result = self.download_files(model).await;
+        let was_cancelled = self.cancelled.lock().unwrap().remove(&model);
         self.update(model, |state| {
-            state.downloading = false;
-            state.error = result.as_ref().err().cloned();
+            if was_cancelled {
+                *state = ModelState::default();
+            } else {
+                state.downloading = false;
+                state.error = result.as_ref().err().cloned();
+            }
         });
+        if was_cancelled {
+            return Ok(());
+        }
         result
     }
 
@@ -160,6 +171,11 @@ impl AiDownloads {
                 .await
                 .map_err(|e| format!("Download interrupted: {e}"))?
             {
+                if self.cancelled.lock().unwrap().contains(&model) {
+                    drop(out);
+                    let _ = tokio::fs::remove_file(&part).await;
+                    return Err("Download cancelled".into());
+                }
                 out.write_all(&chunk).await.map_err(|e| e.to_string())?;
                 hasher.update(&chunk);
                 written += chunk.len() as u64;
@@ -186,7 +202,12 @@ impl AiDownloads {
         Ok(())
     }
 
+    /// Deletes a downloaded model, or cancels its download if one is running.
     pub fn delete(&self, model: AiModel) -> Result<(), String> {
+        if self.state(model).downloading {
+            self.cancelled.lock().unwrap().insert(model);
+            return Ok(());
+        }
         let dir = models_dir().ok_or("no local data directory")?;
         // The tokenizer is shared between models, so only the weights are removed.
         let path = model.weights_path(&dir);

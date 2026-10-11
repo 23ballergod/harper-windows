@@ -127,6 +127,11 @@ $: selected = models.find((m) => m.id === settings.model);
                 Download
               </Button>
             {/if}
+            {#if model.state.downloading}
+              <Button unstyled class="button" type="button" on:click={() => remove(model.id)}>
+                Cancel
+              </Button>
+            {/if}
             {#if model.state.downloaded}
               <Button unstyled class="button" type="button" on:click={() => remove(model.id)}>
                 Delete
