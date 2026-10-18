@@ -241,6 +241,8 @@ pub fn run_tauri() {
 
 /// Run as a highlighter process.
 /// Can configure whether to run standalone, or with a parent Tauri process
+static CONFIG_FAILURES: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+
 pub fn run_highlighter(has_parent: bool) {
     let client = Arc::new(StdMutex::new(Client::current_process()));
     let sync_runtime = Arc::new(
@@ -432,7 +434,9 @@ pub fn run_highlighter(has_parent: bool) {
             &mut refresh_client.lock().expect("IPC client lock poisoned"),
             &refresh_runtime,
         ) {
-            Ok(config) => apply_highlighter_config(
+            Ok(config) => {
+                CONFIG_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
+                apply_highlighter_config(
                 config,
                 &refresh_ignored_lints,
                 &refresh_user_dictionary,
@@ -440,10 +444,15 @@ pub fn run_highlighter(has_parent: bool) {
                 &refresh_integrations,
                 &refresh_debounce_ms,
                 &refresh_linter,
-            ),
+                )
+            }
             Err(error) => {
+                // One hiccup keeps the last config; repeated failures mean the main app is gone,
+                // so quit rather than linger as an orphan.
                 eprintln!("failed to refresh highlighter config: {error}");
-                std::process::exit(1);
+                if CONFIG_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed) >= 2 {
+                    std::process::exit(1);
+                }
             }
         }
     };
@@ -486,7 +495,7 @@ fn integration_callback(
         if let Some(integration) = state
             .integrations
             .iter()
-            .find(|item| item.bundle_id == bundle_id)
+            .find(|item| item.bundle_id.eq_ignore_ascii_case(bundle_id))
         {
             return integration.enabled;
         }

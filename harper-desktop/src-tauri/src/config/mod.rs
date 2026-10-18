@@ -59,7 +59,7 @@ impl Config {
         let integrations: &[Integration] = &self.integrations;
         integrations
             .iter()
-            .any(|integration| integration.bundle_id == bundle_id && integration.enabled)
+            .any(|integration| integration.bundle_id.eq_ignore_ascii_case(bundle_id) && integration.enabled)
     }
 
     /// Resolves an app's enabled state, registering unknown apps when automatic enablement is on.
@@ -74,7 +74,7 @@ impl Config {
         if let Some(integration) = self
             .integrations
             .iter()
-            .find(|item| item.bundle_id == bundle_id)
+            .find(|item| item.bundle_id.eq_ignore_ascii_case(bundle_id))
         {
             return integration.enabled;
         }
@@ -91,7 +91,7 @@ impl Config {
             || self
                 .integrations
                 .iter()
-                .any(|item| item.bundle_id == bundle_id)
+                .any(|item| item.bundle_id.eq_ignore_ascii_case(bundle_id))
         {
             return;
         }
@@ -113,7 +113,7 @@ impl Config {
         if let Some(integration) = self
             .integrations
             .iter_mut()
-            .find(|integration| integration.bundle_id == bundle_id)
+            .find(|integration| integration.bundle_id.eq_ignore_ascii_case(bundle_id))
         {
             integration.enabled = enabled;
         }

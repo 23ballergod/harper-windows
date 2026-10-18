@@ -193,7 +193,7 @@ impl WindowManagerApp {
 
     /// Toggles native click-through behavior based on the cursor's current interactive Harper target,
     /// keeping editor clicks from being swallowed when the pointer is outside highlights and popups.
-    fn update_cursor_hittest(&mut self, event_loop: &ActiveEventLoop) {
+    fn update_cursor_hittest(&mut self, _event_loop: &ActiveEventLoop) {
         let Some(cursor_pos) = self.os_broker.cursor_position() else {
             return;
         };
@@ -252,8 +252,8 @@ impl WindowManagerApp {
 
         for window in &self.windows {
             if let Err(error) = window.set_cursor_hittest(should_enable_hittest) {
-                self.error = Some(error);
-                event_loop.exit();
+                // Transient (for example while the screen is locked); try again next tick.
+                crate::logging::note_change("overlay", format!("cursor hit-test failed: {error}"));
                 return;
             }
         }
@@ -329,7 +329,7 @@ impl ApplicationHandler for WindowManagerApp {
 
     fn window_event(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        _event_loop: &ActiveEventLoop,
         window_id: WindowId,
         event: WindowEvent,
     ) {
@@ -359,9 +359,8 @@ impl ApplicationHandler for WindowManagerApp {
             self.select_hit_lint();
         }
 
-        if matches!(&event, WindowEvent::CloseRequested) {
-            event_loop.exit();
-        }
+        // The overlay is never closed by request (Windows can send one during logoff or
+        // display changes); quitting is done by the main app stopping this process.
     }
 }
 

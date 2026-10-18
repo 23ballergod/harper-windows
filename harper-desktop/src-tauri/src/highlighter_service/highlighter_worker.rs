@@ -119,7 +119,11 @@ async fn run_server_until_shutdown<R, W>(
                 match request {
                     Ok(Some(_)) => {}
                     Ok(None) => break,
-                    Err(error) => eprintln!("failed to receive highlighter request: {error}"),
+                    // A dead child pipe errors on every read; stop so the watchdog can restart it.
+                    Err(error) => {
+                        tracing::error!("highlighter connection lost: {error}");
+                        break;
+                    }
                 }
             }
         }
