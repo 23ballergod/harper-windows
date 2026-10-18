@@ -377,7 +377,7 @@ function listFooter(props: Parameters<typeof SuggestionBox>[0], refocusClose: ()
 				{
 					type: 'button',
 					className: 'harper-footer-row',
-					title: 'Click to go to Harper settings',
+					title: 'Click to go to Shah Re-Writer settings',
 					onclick: () => {
 						void props.actions.openOptions!();
 					},
@@ -392,7 +392,7 @@ function listFooter(props: Parameters<typeof SuggestionBox>[0], refocusClose: ()
 						},
 						[],
 					),
-					'Go to Harper settings',
+					'Go to Shah Re-Writer settings',
 				],
 			),
 		);

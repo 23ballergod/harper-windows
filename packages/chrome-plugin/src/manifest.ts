@@ -25,7 +25,6 @@ export function makeExtensionCSP(isDev: boolean): string {
 		styleSrc.push('http://localhost:5173', 'http://127.0.0.1:*');
 	}
 
-	connectSrc.push('https://writewithharper.com');
 
 	// Assemble the semicolon-delimited CSP
 	return `${[
@@ -38,7 +37,7 @@ export function makeExtensionCSP(isDev: boolean): string {
 }
 
 export default defineManifest({
-	name: `Private Grammar Checker - Harper${isDev ? ' ➡️ Dev' : ''}`,
+	name: `Shah Re-Writer${isDev ? ' (Dev)' : ''}`,
 	description: packageData.description,
 	version: packageData.version,
 	manifest_version: 3,
@@ -48,7 +47,7 @@ export default defineManifest({
 	options_page: 'options.html',
 	browser_specific_settings: {
 		gecko: {
-			id: 'harper@writewithharper.com',
+			id: 'shah-rewriter@localhost',
 			strict_min_version: '146.0',
 		},
 	},
@@ -94,5 +93,4 @@ export default defineManifest({
 	content_security_policy: {
 		extension_pages: makeExtensionCSP(isDev),
 	},
-	host_permissions: ['https://writewithharper.com/*'],
 });

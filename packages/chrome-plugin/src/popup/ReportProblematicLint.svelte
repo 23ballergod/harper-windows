@@ -39,12 +39,12 @@ async function handleSubmit(event: SubmitEvent) {
 <div class="p-5">
 	<h1 class="text-2xl font-semibold">Report Problematic Lint</h1>
 	<p class="text-sm">
-		Only the data you enter below will be sent to the Harper maintainer.
+		Only the data you enter below will be sent to the Shah Re-Writer maintainer.
 	</p>
 	<form class="mt-4 space-y-6" onsubmit={handleSubmit}>
 		<div class="space-y-3">
 			<div class="flex items-baseline gap-2">
-				<Label class=" ">What text caused (or should cause) feedback from Harper?</Label>
+				<Label class=" ">What text caused (or should cause) feedback from Shah Re-Writer?</Label>
 			</div>
 			<Input
 				name="example"
@@ -56,7 +56,7 @@ async function handleSubmit(event: SubmitEvent) {
 			<Checkbox name="is_false_positive" value="true" hidden />
 
 			<div class="flex items-baseline gap-2">
-				<Label class=" ">What rule caused (or should cause) feedback from Harper?</Label>
+				<Label class=" ">What rule caused (or should cause) feedback from Shah Re-Writer?</Label>
 			</div>
 			<Input
 				name="rule_id"

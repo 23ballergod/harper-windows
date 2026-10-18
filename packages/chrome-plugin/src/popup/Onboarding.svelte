@@ -5,14 +5,14 @@ let { onConfirm }: { onConfirm: () => void } = $props();
 
 const steps = [
 	'Start typing in any large text box — emails, docs, blog posts, you name it.',
-	'Keep writing — Harper quietly highlights potential hiccups as you go.',
+	'Keep writing — Shah Re-Writer quietly highlights potential hiccups as you go.',
 	'Click a highlight to open focused, context‑aware suggestions.',
 ];
 </script>
 
 <main class="p-6 space-y-6">
   <h2 class="text-base font-semibold">
-    Welcome! Let’s see Harper in action:
+    Welcome! Let’s see Shah Re-Writer in action:
   </h2>
 
   <ul class="space-y-6">

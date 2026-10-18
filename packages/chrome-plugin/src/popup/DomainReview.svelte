@@ -38,7 +38,7 @@ async function handleSubmit(event: SubmitEvent) {
 <div class="p-5">
 	<h1 class="text-2xl font-semibold">Domain Review</h1>
 	<p class="text-sm">
-		Only the data you enter below will be sent to the Harper maintainer.
+		Only the data you enter below will be sent to the Shah Re-Writer maintainer.
 	</p>
 	<form class="mt-4 space-y-6" onsubmit={handleSubmit}>
 		<div class="space-y-3">
@@ -52,7 +52,7 @@ async function handleSubmit(event: SubmitEvent) {
 				class="dark:bg-slate-900 dark:border-slate-700 "
 			/>
 			<div class="flex items-baseline gap-2">
-				<Label class=" ">Would you say that Harper works well on this domain?</Label>
+				<Label class=" ">Would you say that Shah Re-Writer works well on this domain?</Label>
 			</div>
 			<Select
 				name="works"

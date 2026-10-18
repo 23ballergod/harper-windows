@@ -1,9 +1,9 @@
 {
 	"name": "chrome-plugin",
-	"displayName": "chrome-plugin",
+	"displayName": "Shah Re-Writer",
 	"version": "2.12.0",
 	"author": "no one",
-	"description": "The private grammar checker for 21st Century English",
+	"description": "Shah Re-Writer: private, on-device grammar checking for Google Docs and the web.",
 	"type": "module",
 	"license": "Apache-2.0",
 	"keywords": [

@@ -123,36 +123,10 @@ function daysSince(date: Date): number {
       </h1>
   
       <p class="text-sm font-medium font-sans dark:text-white text-right">
-        Harper is {enabled ? 'enabled on ' : 'disabled on '}{domain.length > 10 ? "this page" : domain}.
+        Shah Re-Writer is {enabled ? 'enabled on ' : 'disabled on '}{domain.length > 10 ? "this page" : domain}.
       </p>
     </section>
   </section>
 
   
-  {#if !isFirefox && installDate != null && daysSince(installDate) > 14 && hasBeenReviewed === false}
-    <section class="bg-primary flex flex-row justify-between p-4">
-      <div class="font-bold">
-        It looks like you're enjoying Harper.<br>
-        Would you mind giving us a review?
-      </div>
-      <Button on:click={openReviewPage}>
-        Review
-      </Button>
-    </section>
-  {:else}
-    <section class="flex flex-row justify-between p-2 items-center">
-      <p class="text-sm font-medium font-sans dark:text-white text-left">
-        Does Harper work well on this site?
-      </p>
-
-      <div class="flex flex-row *:ml-1">
-        <Button size="xs" on:click={() => reviewDomain(true)}>
-          <Fa icon={faThumbsUp} />
-        </Button>
-        <Button size="xs"  on:click={() => reviewDomain(false)}>
-          <Fa icon={faThumbsDown} />
-        </Button>
-      </div>
-    </section>
-  {/if}
 </main>

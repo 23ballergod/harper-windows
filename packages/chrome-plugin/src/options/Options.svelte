@@ -343,10 +343,10 @@ async function removeWeirpack(id: string) {
   <div class="mx-auto max-w-screen-lg space-y-4">
     <Card class="flex items-center gap-3">
       <div class="flex h-9 w-9 items-center justify-center rounded-xl">
-        <img src={logo} alt="Harper logo" class="h-5 w-auto" />
+        <img src={logo} alt="Shah Re-Writer logo" class="h-5 w-auto" />
       </div>
       <div class="flex flex-col">
-        <h1 class="text-base tracking-wide font-serif">Harper</h1>
+        <h1 class="text-base tracking-wide font-serif">Shah Re-Writer</h1>
         <p class="text-xs">Settings</p>
       </div>
     </Card>
@@ -373,7 +373,7 @@ async function removeWeirpack(id: string) {
           <div class="flex flex-col">
             <h3 class="text-sm">Ignore Non-English Text</h3>
             <p class="text-xs text-gray-600 dark:text-gray-400">
-              Skip text that Harper detects as not English.
+              Skip text that Shah Re-Writer detects as not English.
             </p>
           </div>
           <input
@@ -439,7 +439,7 @@ async function removeWeirpack(id: string) {
           <div class="flex flex-col">
             <h3 class="text-sm">Activation Key</h3>
             <p class="text-xs text-gray-600 dark:text-gray-400">
-              If you're finding that you're accidentally triggering Harper.
+              If you're finding that you're accidentally triggering Shah Re-Writer.
             </p>
           </div>
           <Select size="sm" class="w-44" bind:value={activationKey}>
@@ -492,9 +492,6 @@ async function removeWeirpack(id: string) {
         <p class="text-xs text-gray-600 dark:text-gray-400">
           Upload one or more <code>.weirpack</code> files to add custom rule
           packs.
-          <a href="https://writewithharper.com/docs/weir#Weirpacks"
-            >What is a Weirpack?</a
-          >
         </p>
         <input
           type="file"
@@ -577,6 +574,14 @@ async function removeWeirpack(id: string) {
           />
         {/key}
       </div>
+    </Card>
+
+    <Card class="space-y-1">
+      <h2 class="text-sm font-semibold">About and licenses</h2>
+      <p class="text-xs text-gray-600 dark:text-gray-400">
+        Shah Re-Writer includes open-source software from the Harper project
+        (Copyright Automattic and contributors), licensed under the Apache License 2.0.
+      </p>
     </Card>
   </div>
 </div>

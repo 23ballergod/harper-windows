@@ -1,6 +1,6 @@
 import {
 	createBinaryModuleFromUrl,
-	type Dialect,
+	Dialect,
 	type LintConfig,
 	LocalLinter,
 	unpackWeirpackBytes,
@@ -57,18 +57,9 @@ import {
 	type UnitResponse,
 	type WeirpackMeta,
 } from '../protocol';
-import { detectBrowserDialect } from './detectDialect';
 
 console.log('background is running');
 
-chrome.runtime.onInstalled.addListener((details) => {
-	if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
-		chrome.runtime.setUninstallURL('https://writewithharper.com/uninstall-browser-extension');
-		chrome.tabs.create({
-			url: 'https://writewithharper.com/install-browser-extension',
-		});
-	}
-});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	handleRequest(request, sender).then(sendResponse);
@@ -115,62 +106,8 @@ const linterStorageKeys = [
 	'userDictionary',
 ];
 let linterHasPersistedState = false;
-const defaultEnabledDomains = [
-	'old.reddit.com',
-	'sh.reddit.com',
-	'www.reddit.com',
-	'chatgpt.com',
-	'www.perplexity.ai',
-	'textarea.online',
-	'webmail.porkbun.com',
-	'mail.google.com',
-	'trix-editor.org',
-	'github.com',
-	'linear.app',
-	'messages.google.com',
-	'blank.page',
-	'blankpage.im',
-	'froala.com',
-	'playground.lexical.dev',
-	'discord.com',
-	'www.youtube.com',
-	'www.instagram.com',
-	'web.whatsapp.com',
-	'outlook.live.com',
-	'www.linkedin.com',
-	'bsky.app',
-	'pootlewriter.com',
-	'www.tumblr.com',
-	'dayone.me',
-	'medium.com',
-	'x.com',
-	'www.notion.so',
-	'hashnode.com',
-	'www.slatejs.org',
-	'localhost',
-	'writewithharper.com',
-	'prosemirror.net',
-	'draftjs.org',
-	'gitlab.com',
-	'core.trac.wordpress.org',
-	'write.ellipsus.com',
-	'www.facebook.com',
-	'www.upwork.com',
-	'news.ycombinator.com',
-	'classroom.google.com',
-	'quilljs.com',
-	'www.wattpad.com',
-	'ckeditor.com',
-	'app.slack.com',
-	'openrouter.ai',
-	'claude.ai',
-	'docs.google.com',
-	'typst.app',
-	'steamcommunity.com',
-	'store.steampowered.com',
-	'steampowered.com',
-	'help.steampowered.com',
-] as const;
+// Shah Re-Writer: the desktop app already covers most sites, so only Google Docs is on by default.
+const defaultEnabledDomains = ['docs.google.com'] as const;
 const defaultEnabledDomainSet = new Set<string>(defaultEnabledDomains);
 
 let linterReady = getDialect()
@@ -559,17 +496,10 @@ async function handlePostFormData(req: PostFormDataRequest): Promise<PostFormDat
 		formData.append(key, value);
 	}
 
-	try {
-		const response = await fetch(req.url, {
-			method: 'POST',
-			body: formData,
-		});
-
-		return { kind: 'postFormData', success: response.ok };
-	} catch (error) {
-		console.error('Failed to post form data', error);
-		return { kind: 'postFormData', success: false };
-	}
+	// Shah Re-Writer: never send data to remote servers.
+	void formData;
+	void req;
+	return { kind: 'postFormData', success: true };
 }
 
 async function handleGetInstalledOn(_req: GetInstalledOnRequest): Promise<GetInstalledOnResponse> {
@@ -684,7 +614,7 @@ async function getDialect(): Promise<Dialect> {
 
 	// If user hasn't set a dialect, try to detect from browser language
 	if (resp.dialect === undefined) {
-		return detectBrowserDialect();
+		return Dialect.American;
 	}
 
 	return resp.dialect;
@@ -789,7 +719,7 @@ async function getStoredDomainStatus(domain: string): Promise<boolean | undefine
 	return undefined;
 }
 
-/** Check if Harper has been enabled for a given domain. */
+/** Check if Shah Re-Writer has been enabled for a given domain. */
 async function enabledForDomain(domain: string): Promise<boolean> {
 	const stored = await getStoredDomainStatus(domain);
 	if (stored !== undefined) {
@@ -805,7 +735,7 @@ async function enabledForDomain(domain: string): Promise<boolean> {
 	return await enabledByDefault();
 }
 
-/** Set whether Harper is enabled for a given domain.
+/** Set whether Shah Re-Writer is enabled for a given domain.
  *
  * @param overrideValue dictates whether this should override a previous setting.
  * */
@@ -821,18 +751,18 @@ async function setDomainEnable(domain: string, status: boolean, overrideValue = 
 	}
 }
 
-/** Set whether Harper is enabled by default. */
+/** Set whether Shah Re-Writer is enabled by default. */
 async function setDefaultEnable(status: boolean) {
 	await chrome.storage.local.set({ defaultEnable: status });
 }
 
-/** Check if Harper has been enabled by default. */
+/** Check if Shah Re-Writer has been enabled by default. */
 async function enabledByDefault(): Promise<boolean> {
 	const req = await chrome.storage.local.get({ defaultEnable: false });
 	return req.defaultEnable;
 }
 
-/** Check whether Harper's state has been set for a given domain. */
+/** Check whether Shah Re-Writer's state has been set for a given domain. */
 async function isDomainSet(domain: string): Promise<boolean> {
 	return (await getStoredDomainStatus(domain)) !== undefined;
 }
