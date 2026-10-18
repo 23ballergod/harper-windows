@@ -1,0 +1,22 @@
+expr main <([congratulations, congrats] for ![you, everyone, everybody, all, them, him, her, us, me]), for>
+
+let message "The usual preposition is `congratulations on`."
+let description "Corrects `congratulations for` an achievement to `congratulations on`."
+let kind "Usage"
+let becomes "on"
+
+test "Congratulations for your win." "Congratulations on your win."
+test "Congratulations for winning the race!" "Congratulations on winning the race!"
+test "Congrats for the new job." "Congrats on the new job."
+test "Many congratulations for your graduation." "Many congratulations on your graduation."
+test "She sent her congratulations for the promotion." "She sent her congratulations on the promotion."
+test "Congratulations for getting in!" "Congratulations on getting in!"
+test "CONGRATULATIONS FOR YOUR WIN." "CONGRATULATIONS ON YOUR WIN."
+test "Big congrats for finishing the marathon." "Big congrats on finishing the marathon."
+
+allows "Congratulations on your win."
+allows "Congratulations to you for winning!"
+allows "Congratulations for everyone who passed!"
+allows "Congratulations to the whole team."
+allows "There were congratulations for all."
+allows "Thanks for the congratulations."

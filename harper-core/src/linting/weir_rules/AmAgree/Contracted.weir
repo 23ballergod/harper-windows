@@ -1,0 +1,11 @@
+expr main <(I'm [agree, disagree]), I'm>
+
+let message "`Agree` is a verb, so it doesn't take `am`: say `I agree`."
+let description "Corrects `I'm agree` to `I agree`."
+let kind "Grammar"
+let becomes "I"
+
+test "I'm agree with you." "I agree with you."
+test "I'm disagree with that." "I disagree with that."
+allows "I'm agreeing with you."
+allows "I'm in agreement."

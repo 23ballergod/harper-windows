@@ -109,6 +109,10 @@ use super::filler_words::FillerWords;
 use super::find_fine::FindFine;
 use super::first_aid_kit::FirstAidKit;
 use super::fish_nor_fowl::FishNorFowl;
+use super::fixed_patterns::{
+    ComeTooEos, CompoundSubjectPronoun, FewerMany, HereIsPlural, InsistOn, LayDownLieDown,
+    LetsLetUs, MoreShortAdjective, PerfectWithPastTime, TastesGood, WereWeAre, YourYoure,
+};
 use super::flesh_out_vs_full_fledged::FleshOutVsFullFledged;
 use super::foot_inch_minute_second_symbols::FootInchMinuteSecondSymbols;
 use super::for_free_of_charge::ForFreeOfCharge;
@@ -893,6 +897,18 @@ impl LintGroup {
         insert_struct_rule!(SpelledNumbers);
         insert_expr_rule!(SplitWords);
         insert_struct_rule!(SubjectPronoun);
+        insert_struct_rule!(ComeTooEos);
+        insert_struct_rule!(CompoundSubjectPronoun);
+        insert_struct_rule!(FewerMany);
+        insert_struct_rule!(HereIsPlural);
+        insert_struct_rule!(InsistOn);
+        insert_struct_rule!(LayDownLieDown);
+        insert_struct_rule!(LetsLetUs);
+        insert_struct_rule!(MoreShortAdjective);
+        insert_struct_rule!(PerfectWithPastTime);
+        insert_struct_rule!(TastesGood);
+        insert_struct_rule!(WereWeAre);
+        insert_struct_rule!(YourYoure);
         insert_expr_rule!(SuchShame);
         insert_expr_rule!(SummarySummery);
         insert_expr_rule!(TakeALookTo);

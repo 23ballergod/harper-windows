@@ -1,0 +1,18 @@
+expr main <(whose [coming, going] ![-]), whose>
+
+let message "Use `who's` (who is) before a verb like `coming`; `whose` shows ownership."
+let description "Corrects `whose coming` to `who's coming`."
+let kind "WordChoice"
+let becomes "who's"
+
+test "Whose coming to the party?" "Who's coming to the party?"
+test "Whose going first?" "Who's going first?"
+test "I wonder whose coming tonight." "I wonder who's coming tonight."
+test "Whose going to drive?" "Who's going to drive?"
+test "So whose coming with me?" "So who's coming with me?"
+
+allows "Who's coming to the party?"
+allows "Whose car is this?"
+allows "Whose going-away party is it?"
+allows "Whose turn is it?"
+allows "The man whose house burned down left."

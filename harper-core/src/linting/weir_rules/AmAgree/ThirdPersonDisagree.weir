@@ -1,0 +1,12 @@
+expr main <([he, she, it] is disagree), (is disagree)>
+
+let message "`disagree` is a verb, so it doesn't take `is`: say `she disagrees`."
+let description "Corrects `he is disagree` to `he disagrees`."
+let kind "Grammar"
+let becomes "disagrees"
+
+test "He is disagree with me." "He disagrees with me."
+test "She is disagree with the decision." "She disagrees with the decision."
+allows "He disagrees with me."
+allows "She is disagreeing with me."
+allows "It is hard to disagree."

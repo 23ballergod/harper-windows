@@ -64,6 +64,13 @@ impl IrregularVerbs {
             .map(|(_, _, pp)| pp.as_str())
     }
 
+    pub fn get_preterite_for_past_participle(&self, past_participle: &str) -> Option<&str> {
+        self.verbs
+            .iter()
+            .find(|(_, _, pp)| pp.eq_ignore_ascii_case(past_participle))
+            .map(|(_, pt, _)| pt.as_str())
+    }
+
     pub fn get_lemma_for_preterite(&self, preterite: &str) -> Option<&str> {
         self.verbs
             .iter()

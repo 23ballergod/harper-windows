@@ -1,0 +1,11 @@
+expr main <[(the news were), (the [good, bad, latest, big, sad, great] news were)], were>
+
+let message "`News` is singular, so use `was`."
+let description "Corrects `the news were` to `the news was`."
+let kind "Agreement"
+let becomes "was"
+
+test "The news were shocking." "The news was shocking."
+test "The good news were announced." "The good news was announced."
+allows "The news was shocking."
+allows "The news crews were outside."

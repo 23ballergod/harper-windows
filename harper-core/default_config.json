@@ -2241,6 +2241,153 @@
 						},
 						{
 							"Bool": {
+								"name": "ComeTooEos",
+								"state": true,
+								"label": "Come Too Eos"
+							}
+						},
+						{
+							"Bool": {
+								"name": "CompoundSubjectPronoun",
+								"state": true,
+								"label": "Compound Subject Pronoun"
+							}
+						},
+						{
+							"Bool": {
+								"name": "FewerMany",
+								"state": true,
+								"label": "Fewer Many"
+							}
+						},
+						{
+							"Bool": {
+								"name": "HereIsPlural",
+								"state": true,
+								"label": "Here Is Plural"
+							}
+						},
+						{
+							"Bool": {
+								"name": "InsistOn",
+								"state": true,
+								"label": "Insist On"
+							}
+						},
+						{
+							"Bool": {
+								"name": "LayDownLieDown",
+								"state": true,
+								"label": "Lay Down Lie Down"
+							}
+						},
+						{
+							"Bool": {
+								"name": "LetsLetUs",
+								"state": true,
+								"label": "Lets Let Us"
+							}
+						},
+						{
+							"Bool": {
+								"name": "MoreShortAdjective",
+								"state": true,
+								"label": "More Short Adjective"
+							}
+						},
+						{
+							"Bool": {
+								"name": "PerfectWithPastTime",
+								"state": true,
+								"label": "Perfect With Past Time"
+							}
+						},
+						{
+							"Bool": {
+								"name": "TastesGood",
+								"state": true,
+								"label": "Tastes Good"
+							}
+						},
+						{
+							"Bool": {
+								"name": "WereWeAre",
+								"state": true,
+								"label": "Were We Are"
+							}
+						},
+						{
+							"Bool": {
+								"name": "YourYoure",
+								"state": true,
+								"label": "Your vs You're"
+							}
+						},
+						{
+							"Bool": {
+								"name": "AlreadyToAllReady",
+								"state": true,
+								"label": "Already To All Ready"
+							}
+						},
+						{
+							"Bool": {
+								"name": "AmAgree",
+								"state": true,
+								"label": "Am Agree"
+							}
+						},
+						{
+							"Bool": {
+								"name": "BorrowToLend",
+								"state": true,
+								"label": "Borrow To Lend"
+							}
+						},
+						{
+							"Bool": {
+								"name": "CongratulationsOn",
+								"state": true,
+								"label": "Congratulations On"
+							}
+						},
+						{
+							"Bool": {
+								"name": "CouldCareLess",
+								"state": true,
+								"label": "Could Care Less"
+							}
+						},
+						{
+							"Bool": {
+								"name": "NewsIs",
+								"state": true,
+								"label": "News Is"
+							}
+						},
+						{
+							"Bool": {
+								"name": "PrincipalOfSchool",
+								"state": true,
+								"label": "Principal Of School"
+							}
+						},
+						{
+							"Bool": {
+								"name": "ThereIsMany",
+								"state": true,
+								"label": "There Is Many"
+							}
+						},
+						{
+							"Bool": {
+								"name": "WhoseWhos",
+								"state": true,
+								"label": "Whose Whos"
+							}
+						},
+						{
+							"Bool": {
 								"name": "SubjectPronoun",
 								"state": true,
 								"label": "Subject Pronoun"

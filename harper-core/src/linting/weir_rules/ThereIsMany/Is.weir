@@ -1,0 +1,23 @@
+expr q [many, several, numerous, multiple, few]
+expr main <[(there is @q ![a, an]), (is there @q)], is>
+
+let message "The noun after `there is` is plural here, so use `there are`."
+let description "Corrects `there is many ...` to `there are many ...`."
+let kind "Agreement"
+let becomes "are"
+
+test "There is many reasons to go." "There are many reasons to go."
+test "There is several options." "There are several options."
+test "I think there is many ways to do it." "I think there are many ways to do it."
+test "There is few people here." "There are few people here."
+test "Is there many people coming?" "Are there many people coming?"
+test "There is multiple errors in the file." "There are multiple errors in the file."
+test "There is numerous problems." "There are numerous problems."
+
+allows "There are many reasons to go."
+allows "There is many a slip between cup and lip."
+allows "There is a few minutes left."
+allows "There is little time."
+allows "There is much to do."
+allows "There is a lot of water."
+allows "Many is the time I waited."

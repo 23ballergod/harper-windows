@@ -1,0 +1,27 @@
+expr subj [(I am), (I'm), (we are), (we're), (you are), (you're), (they are), (they're), (I was), (we were), (they were), (he is), (she is), (he's), (she's), (he was), (she was), (you were)]
+expr verb [go, leave, start, begin, eat, play, travel, ride, rock, party, move, head, dance, order, roll, ship, launch, sign, vote, fight, help, work, learn, celebrate, swim, run, drive, fly, sleep]
+expr main <(@subj already to @verb), already>
+
+let message "Use `all ready` (completely prepared) here, not `already`."
+let description "Corrects `already to go` style phrases to `all ready to go`."
+let kind "WordChoice"
+let becomes "all ready"
+
+test "I'm already to go." "I'm all ready to go."
+test "We are already to leave." "We are all ready to leave."
+test "They're already to start the game." "They're all ready to start the game."
+test "She was already to go when I called." "She was all ready to go when I called."
+test "You're already to rock." "You're all ready to rock."
+test "We were already to eat." "We were all ready to eat."
+test "He is already to play." "He is all ready to play."
+test "I am already to learn." "I am all ready to learn."
+
+allows "I'm all ready to go."
+allows "I'm already going."
+allows "The plan is already to leave on Monday."
+allows "The goal was already to ship by June."
+allows "I am already late."
+allows "She has already gone."
+allows "I'm already used to it."
+allows "We are already too late to go."
+allows "He is already to blame."

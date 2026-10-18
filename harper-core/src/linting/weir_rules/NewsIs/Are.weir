@@ -1,0 +1,22 @@
+expr main <[(the news are), (the [good, bad, latest, big, sad, great] news are)], are>
+
+let message "`News` is singular, so use `is`."
+let description "Corrects `the news are` to `the news is`."
+let kind "Agreement"
+let becomes "is"
+
+test "The news are on." "The news is on."
+test "The news are bad today." "The news is bad today."
+test "I think the news are true." "I think the news is true."
+test "The good news are that we won." "The good news is that we won."
+test "The latest news are worrying." "The latest news is worrying."
+test "THE NEWS ARE ON." "THE NEWS IS ON."
+test "Turn it up, the news are starting." "Turn it up, the news is starting."
+test "The bad news are here." "The bad news is here."
+
+allows "The news is on."
+allows "The news anchors are here."
+allows "The news reports are wrong."
+allows "The newspapers are on the table."
+allows "News outlets are reporting it."
+allows "The news channels are all covering it."

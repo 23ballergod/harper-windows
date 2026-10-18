@@ -1,0 +1,25 @@
+expr noun [car, house, phone, book, bag, idea, fault, turn, dog, cat, jacket, coat, keys, pen, shoes, money, wallet, laptop, computer, seat, side, job, umbrella, backpack, bike, notebook, homework, responsibility, decision, birthday]
+expr main <(who's @noun ![-]), who's>
+
+let message "Use `whose` to ask who something belongs to; `who's` means `who is`."
+let description "Corrects `who's` to the possessive `whose` before a noun like `car` or `turn`."
+let kind "WordChoice"
+let becomes "whose"
+
+test "Who's car is this?" "Whose car is this?"
+test "Who's turn is it?" "Whose turn is it?"
+test "I don't know who's phone this is." "I don't know whose phone this is."
+test "Who's idea was this?" "Whose idea was this?"
+test "Who's fault is it?" "Whose fault is it?"
+test "Who's dog is barking?" "Whose dog is barking?"
+test "Who's side are you on?" "Whose side are you on?"
+test "Who's keys are these?" "Whose keys are these?"
+
+allows "Whose car is this?"
+allows "Who's coming tonight?"
+allows "Who's there?"
+allows "Who's house-sitting this week?"
+allows "Who's dog-sitting for you?"
+allows "Who's the boss?"
+allows "Who's at the door?"
+allows "Who's going to drive?"

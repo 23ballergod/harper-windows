@@ -1,0 +1,22 @@
+expr main (could care less)
+
+let message "The idiom is `couldn't care less`: you care so little that you could not care any less."
+let description "Corrects the common slip `could care less` to the idiom `couldn't care less`."
+let kind "Usage"
+let becomes "couldn't care less"
+
+test "I could care less." "I couldn't care less."
+test "Honestly, I could care less about the game." "Honestly, I couldn't care less about the game."
+test "She could care less what they think." "She couldn't care less what they think."
+test "They could care less if it rains." "They couldn't care less if it rains."
+test "He said he could care less." "He said he couldn't care less."
+test "We could care less about the score." "We couldn't care less about the score."
+test "I COULD CARE LESS." "I COULDN'T CARE LESS."
+test "Frankly I could care less, to be honest." "Frankly I couldn't care less, to be honest."
+
+allows "I couldn't care less."
+allows "I could not care less about it."
+allows "She couldn't care less what they think."
+allows "I could care for the dog while you are away."
+allows "You could care more about your health."
+allows "They could take less time."

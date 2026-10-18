@@ -1,0 +1,15 @@
+expr obj [me, us, him, her, them]
+expr det [a, an, the, some, your, his, my, our, their, this, that, five, ten, any]
+expr main <(borrowed @obj @det), borrowed>
+
+let message "Use `lent` for giving something; `borrow` means taking something."
+let description "Corrects `borrowed` followed by a recipient (`borrowed me a pen`) to `lent`."
+let kind "WordChoice"
+let becomes "lent"
+
+test "She borrowed me a pen yesterday." "She lent me a pen yesterday."
+test "My uncle borrowed us his truck." "My uncle lent us his truck."
+test "He borrowed them some chairs." "He lent them some chairs."
+allows "I borrowed her laptop for the trip."
+allows "She borrowed a pen from me."
+allows "We borrowed their truck."
