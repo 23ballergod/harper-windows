@@ -21,6 +21,12 @@ const CONFIG_POLL_INTERVAL: Duration = Duration::from_secs(1);
 /// How long the pointer rests on an underline before its suggestions open, like Grammarly.
 const HOVER_OPEN_DELAY: Duration = Duration::from_millis(400);
 /// How long the pointer can be away from an underline and its card before the card closes.
+/// How often text is re-read while nothing is being interacted with.
+/// Minimum time between reads of the focused app's text.
+const READ_INTERVAL: Duration = Duration::from_millis(100);
+const IDLE_TICK: Duration = Duration::from_millis(120);
+/// How often to tick while the pointer is over an underline or a card is open.
+const ACTIVE_TICK: Duration = Duration::from_millis(30);
 const HOVER_CLOSE_DELAY: Duration = Duration::from_millis(700);
 
 /// Owns the winit event loop and the overlay windows created for each monitor.
@@ -93,7 +99,7 @@ impl WindowManager {
             },
         );
 
-        // Run continuously without a read timer; VSync presentation provides backpressure.
+        // Paced in `about_to_wait`: reading the screen in a tight loop kept a CPU core busy.
         self.event_loop.set_control_flow(ControlFlow::Poll);
         let result = self.event_loop.run_app(&mut app);
 
@@ -111,6 +117,7 @@ struct WindowManagerApp {
     os_broker: Box<dyn OsBroker>,
     lint_text: LintText,
     last_config_poll: Instant,
+    last_read: Instant,
     refresh_config: RefreshConfig,
     hovered_lint: Option<usize>,
     /// When the pointer started resting on `hovered_lint`; cleared once its popup has opened.
@@ -142,6 +149,7 @@ impl WindowManagerApp {
             os_broker,
             lint_text: callbacks.lint_text,
             last_config_poll: Instant::now(),
+            last_read: Instant::now() - READ_INTERVAL,
             refresh_config: callbacks.refresh_config,
             hovered_lint: None,
             hover_started: None,
@@ -276,7 +284,12 @@ impl ApplicationHandler for WindowManagerApp {
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         let now = Instant::now();
 
-        self.read_rect_updates();
+        // Mouse movement wakes the loop constantly; reading the focused app's text on every wake
+        // was the main cause of the PC slowing down.
+        if now.duration_since(self.last_read) >= READ_INTERVAL {
+            self.read_rect_updates();
+            self.last_read = now;
+        }
 
         if now.duration_since(self.last_config_poll) >= CONFIG_POLL_INTERVAL {
             self.refresh_config();
@@ -284,6 +297,15 @@ impl ApplicationHandler for WindowManagerApp {
         }
 
         self.update_cursor_hittest(event_loop);
+
+        // Re-read text a few times a second while idle, faster while the pointer is near our
+        // underlines so hover and the card stay responsive.
+        let interval = if self.cursor_hittest_enabled || self.render_state.has_popup() {
+            ACTIVE_TICK
+        } else {
+            IDLE_TICK
+        };
+        event_loop.set_control_flow(ControlFlow::WaitUntil(now + interval));
     }
 
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {

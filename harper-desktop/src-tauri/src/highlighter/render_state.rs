@@ -407,9 +407,12 @@ fn render_popover_footer(
             ui.set_width(CARD_WIDTH - 20.0);
             ui.set_height(FOOTER_HEIGHT - 16.0);
             ui.horizontal(|ui| {
-                if is_spelling_kind(lint.lint_kind) {
-                    let source_chars = source_text.chars().collect::<Vec<_>>();
-                    let word = lint.get_str(&source_chars);
+                let source_chars = source_text.chars().collect::<Vec<_>>();
+                let word = lint.get_str(&source_chars);
+                // Names and other single words the checker doesn't know can be added, whatever
+                // kind of mistake it thought they were.
+                let single_word = !word.is_empty() && word.chars().all(char::is_alphanumeric);
+                if is_spelling_kind(lint.lint_kind) || single_word {
                     if ghost_button(
                         ui,
                         Some(Glyph::Plus),
