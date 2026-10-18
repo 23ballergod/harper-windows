@@ -100,7 +100,8 @@ impl OsBroker for WindowsBroker {
     fn is_harper_desktop(app_id: &str) -> bool {
         // Windows' own shell processes are never worth checking, so treat them like our own
         // windows: "Enable new apps automatically" leaves them out.
-        const SYSTEM_SHELL: [&str; 5] = [
+        const SYSTEM_SHELL: [&str; 6] = [
+            "shellhost.exe",
             "explorer.exe",
             "applicationframehost.exe",
             "shellexperiencehost.exe",
