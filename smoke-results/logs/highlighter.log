@@ -1,0 +1,32 @@
+2026-10-18T23:12:46.663454Z  INFO harper_desktop_lib::logging: Shah Re-Writer 1.0.0 started (highlighter)
+2026-10-18T23:12:47.860026Z  INFO harper_desktop_lib::highlighter::window: Overlay GPU: Microsoft Basic Render Driver (Dx12, Cpu); alpha modes [Auto, Inherit, Opaque, PostMultiplied, PreMultiplied]
+2026-10-18T23:12:48.354824Z  WARN egui_wgpu: Software rasterizer detected - loss of performance expected. backend: Dx12, device_type: Cpu, name: "Microsoft Basic Render Driver", driver: "10.0.26100.33438", vendor: Unknown (0x1414), device: 0x8C, subgroup_size: 4..=4, transient_saves_memory: false
+2026-10-18T23:12:48.391738Z  INFO harper_desktop_lib::logging: focus: C:\Program Files\WindowsApps\Microsoft.WindowsTerminal_1.23.20211.0_x64__8wekyb3d8bbwe\WindowsTerminal.exe (checking on)
+2026-10-18T23:12:48.984641Z  INFO harper_desktop_lib::logging: text element: focused element is a Some(Text) (class "TermControl", framework "XAML"); text pattern: yes; editable: no
+2026-10-18T23:12:48.984725Z  INFO harper_desktop_lib::logging: text: no readable text box has keyboard focus
+2026-10-18T23:12:49.122894Z  INFO harper_desktop_lib::logging: overlay: 0 underlines to draw across 1 screen(s)
+2026-10-18T23:12:50.553682Z  INFO harper_desktop_lib::logging: focus: C:\Users\runneradmin\AppData\Local\Shah Re-Writer\Shah Re-Writer.exe (checking off)
+2026-10-18T23:13:15.945119Z  INFO harper_desktop_lib::logging: focus: C:\Windows\System32\notepad.exe (checking on)
+2026-10-18T23:13:15.976501Z  INFO harper_desktop_lib::logging: text element: classic Win32 edit box
+2026-10-18T23:13:16.020196Z  INFO harper_desktop_lib::logging: text: 0 problems found, 0 with a position on screen
+2026-10-18T23:13:22.003827Z  INFO harper_desktop_lib::logging: text: 3 problems found, 3 with a position on screen
+2026-10-18T23:13:22.003929Z  INFO harper_desktop_lib::logging: overlay: 3 underlines to draw across 1 screen(s)
+2026-10-18T23:13:43.428838Z  INFO harper_desktop_lib::logging: text: 3 problems found, but their positions on screen are unknown
+2026-10-18T23:13:43.432170Z  INFO harper_desktop_lib::logging: focus: C:\Program Files\Google\Chrome\Application\chrome.exe (checking on)
+2026-10-18T23:13:43.464672Z  INFO harper_desktop_lib::logging: text element: focused element is a Some(Pane) (class "Chrome_WidgetWin_1", framework "Chrome"); text pattern: no (The operation completed successfully.); editable: no
+2026-10-18T23:13:43.464721Z  INFO harper_desktop_lib::logging: text: no readable text box has keyboard focus
+2026-10-18T23:13:43.670080Z  INFO harper_desktop_lib::logging: overlay: 0 underlines to draw across 1 screen(s)
+2026-10-18T23:13:44.430029Z  INFO harper_desktop_lib::logging: text: 0 problems found, 0 with a position on screen
+2026-10-18T23:13:49.207195Z  INFO harper_desktop_lib::logging: text: 3 problems found, 3 with a position on screen
+2026-10-18T23:13:49.207297Z  INFO harper_desktop_lib::logging: overlay: 3 underlines to draw across 1 screen(s)
+2026-10-18T23:14:09.124386Z  INFO harper_desktop_lib::logging: text: 2 problems found, 2 with a position on screen
+2026-10-18T23:14:09.124486Z  INFO harper_desktop_lib::logging: overlay: 2 underlines to draw across 1 screen(s)
+2026-10-18T23:14:12.065151Z  INFO harper_desktop_lib::logging: text: 4 problems found, 4 with a position on screen
+2026-10-18T23:14:12.065255Z  INFO harper_desktop_lib::logging: overlay: 4 underlines to draw across 1 screen(s)
+2026-10-18T23:14:14.630827Z  INFO harper_desktop_lib::logging: text: 0 problems found, 0 with a position on screen
+2026-10-18T23:14:14.630922Z  INFO harper_desktop_lib::logging: overlay: 0 underlines to draw across 1 screen(s)
+2026-10-18T23:14:17.018037Z  INFO harper_desktop_lib::logging: text: 1 problems found, 1 with a position on screen
+2026-10-18T23:14:17.018140Z  INFO harper_desktop_lib::logging: overlay: 1 underlines to draw across 1 screen(s)
+2026-10-18T23:14:24.680165Z  INFO harper_desktop_lib::logging: text: no readable text box has keyboard focus
+2026-10-18T23:14:24.727181Z  INFO harper_desktop_lib::logging: text element: focused element is a Some(Document) (class "", framework "Chrome"); text pattern: yes; editable: no
+2026-10-18T23:14:24.825244Z  INFO harper_desktop_lib::logging: overlay: 0 underlines to draw across 1 screen(s)
