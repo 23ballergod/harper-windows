@@ -408,25 +408,14 @@ fn is_editable_text(element: &UIElement) -> bool {
     if element.is_password().unwrap_or(true) {
         return false;
     }
-    // Browser address bars hold web addresses, not writing.
-    if element
-        .get_classname()
-        .is_ok_and(|class| class.starts_with("Omnibox"))
-    {
-        return false;
-    }
-    // Search boxes (Google's, site search) are combo boxes with suggestion dropdowns: short
-    // queries, not writing, and the dropdown keeps changing the text under the underlines.
-    if matches!(element.get_control_type(), Ok(ControlType::ComboBox)) {
-        return false;
-    }
     if let Ok(value) = element.get_pattern::<UIValuePattern>()
         && let Ok(read_only) = value.is_readonly()
     {
         return !read_only;
     }
     match element.get_control_type() {
-        Ok(ControlType::Edit) => true,
+        // Search and address bars (Chrome's omnibox, Google's search box) are checked too.
+        Ok(ControlType::Edit | ControlType::ComboBox) => true,
         Ok(ControlType::Document) => !matches!(
             element.get_framework_id().unwrap_or_default().as_str(),
             "Chrome" | "Gecko"
