@@ -1,0 +1,12 @@
+expr main <([he, she, it] is agree), (is agree)>
+
+let message "`agree` is a verb, so it doesn't take `is`: say `she agrees`."
+let description "Corrects `he is agree` to `he agrees`."
+let kind "Grammar"
+let becomes "agrees"
+
+test "He is agree with me." "He agrees with me."
+test "She is agree with the decision." "She agrees with the decision."
+allows "He agrees with me."
+allows "She is agreeing with me."
+allows "It is hard to agree."

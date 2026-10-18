@@ -1,0 +1,19 @@
+expr main <([I, we, you, they] [am, are] disagree), ([am, are] disagree)>
+
+let message "`disagree` is a verb, so it doesn't take `am` or `are`: say `I disagree`."
+let description "Removes the extra `am` or `are` in `I am disagree`."
+let kind "Grammar"
+let becomes "disagree"
+
+test "I am disagree with you." "I disagree with you."
+test "We are disagree on this point." "We disagree on this point."
+test "They are disagree with the plan." "They disagree with the plan."
+test "You are disagree, right?" "You disagree, right?"
+test "I am disagree." "I disagree."
+
+allows "I disagree with you."
+allows "We are disagreed on this point."
+allows "They are in disagreement."
+allows "I am disagreeable to that."
+allows "Are you disagreeing with me?"
+allows "I am happy to disagree."

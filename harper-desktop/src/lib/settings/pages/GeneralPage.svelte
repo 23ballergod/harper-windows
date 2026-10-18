@@ -274,8 +274,8 @@ function settingsValueToDialect(value: string): Dialect {
           <div class="eyebrow">General</div>
           <div class="rows">
             <SettingRow top>
-              <strong>Keep Harper in the menu bar</strong>
-              <p>Shows the Harper icon so you can open settings without opening the main app.</p>
+              <strong>Keep Shah Re-Writer in the system tray</strong>
+              <p>Shows the Shah Re-Writer icon next to the clock so you can open settings anytime.</p>
               <Checkbox
                 slot="control"
                 appearance="settings"
@@ -288,8 +288,8 @@ function settingsValueToDialect(value: string): Dialect {
             </SettingRow>
 
             <SettingRow>
-              <strong>Launch Harper at startup</strong>
-              <p>Harper will start silently when you log in.</p>
+              <strong>Launch Shah Re-Writer at startup</strong>
+              <p>Shah Re-Writer will start silently when you log in.</p>
               <Checkbox
                 slot="control"
                 appearance="settings"
@@ -310,7 +310,7 @@ function settingsValueToDialect(value: string): Dialect {
 
             <SettingRow top>
               <strong>Automatically check for updates</strong>
-              <p>Harper will check for new versions daily.</p>
+              <p>Shah Re-Writer will check for new versions daily.</p>
               <p class="result-summary">
                 Current version: {currentVersion || 'loading...'} · Latest version: {latestVersion || 'loading...'}
               </p>
@@ -352,7 +352,7 @@ function settingsValueToDialect(value: string): Dialect {
         <div class="stanza">
           <div class="eyebrow">Language</div>
           <p class="section-copy">
-            Choose the dialect Harper uses to check spelling and grammar.
+            Choose the dialect Shah Re-Writer uses to check spelling and grammar.
           </p>
           <div class="inline-row">
             <label for="dialect">English dialect:</label>
@@ -383,7 +383,7 @@ function settingsValueToDialect(value: string): Dialect {
         <div class="stanza">
           <div class="eyebrow">Writing</div>
           <p class="section-copy">
-            Choose how long Harper waits after text changes before checking it. Use 0 ms for
+            Choose how long Shah Re-Writer waits after text changes before checking it. Use 0 ms for
             immediate checking.
           </p>
           <div class="inline-row">

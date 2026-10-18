@@ -1,0 +1,14 @@
+expr q [many, several, numerous, multiple, few]
+expr main <[(there was @q ![a, an]), (was there @q)], was>
+
+let message "The noun after `there was` is plural here, so use `there were`."
+let description "Corrects `there was many ...` to `there were many ...`."
+let kind "Agreement"
+let becomes "were"
+
+test "There was many people at the party." "There were many people at the party."
+test "There was several issues." "There were several issues."
+test "Was there many people?" "Were there many people?"
+allows "There were many people at the party."
+allows "There was many a night we stayed up."
+allows "There was a lot of noise."

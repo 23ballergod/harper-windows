@@ -39,7 +39,8 @@ impl Config {
             ignored_lints: IgnoredLints::new(),
             lint_config: FlatConfig::new_curated(),
             integrations: Integration::curated_integrations(),
-            auto_enable_new_apps: false,
+            // On Windows, check every app by default, the way Grammarly does.
+            auto_enable_new_apps: cfg!(target_os = "windows"),
             onboarding_completed: false,
             debounce_ms: 0,
             auto_update: true,
@@ -58,7 +59,7 @@ impl Config {
         let integrations: &[Integration] = &self.integrations;
         integrations
             .iter()
-            .any(|integration| integration.bundle_id == bundle_id && integration.enabled)
+            .any(|integration| integration.bundle_id.eq_ignore_ascii_case(bundle_id) && integration.enabled)
     }
 
     /// Resolves an app's enabled state, registering unknown apps when automatic enablement is on.
@@ -73,7 +74,7 @@ impl Config {
         if let Some(integration) = self
             .integrations
             .iter()
-            .find(|item| item.bundle_id == bundle_id)
+            .find(|item| item.bundle_id.eq_ignore_ascii_case(bundle_id))
         {
             return integration.enabled;
         }
@@ -90,7 +91,7 @@ impl Config {
             || self
                 .integrations
                 .iter()
-                .any(|item| item.bundle_id == bundle_id)
+                .any(|item| item.bundle_id.eq_ignore_ascii_case(bundle_id))
         {
             return;
         }
@@ -112,7 +113,7 @@ impl Config {
         if let Some(integration) = self
             .integrations
             .iter_mut()
-            .find(|integration| integration.bundle_id == bundle_id)
+            .find(|integration| integration.bundle_id.eq_ignore_ascii_case(bundle_id))
         {
             integration.enabled = enabled;
         }
@@ -170,9 +171,9 @@ impl Config {
             .with_lint_config(self.lint_config.clone())
     }
 
-    #[allow(dead_code)]
-    fn folder_path() -> Option<PathBuf> {
-        dirs::config_dir().map(|path| path.join("harper-desktop"))
+    /// Uses its own folder so settings never collide with an upstream Harper Desktop install.
+    pub(crate) fn folder_path() -> Option<PathBuf> {
+        dirs::config_dir().map(|path| path.join(crate::branding::DATA_FOLDER))
     }
 
     #[allow(dead_code)]
@@ -425,7 +426,7 @@ mod tests {
         assert_eq!(path.file_name().unwrap(), "config.json");
         assert_eq!(
             path.parent().unwrap().file_name().unwrap(),
-            "harper-desktop"
+            crate::branding::DATA_FOLDER
         );
     }
 
@@ -444,7 +445,7 @@ mod tests {
         assert_eq!(path.file_name().unwrap(), "dictionary.txt");
         assert_eq!(
             path.parent().unwrap().file_name().unwrap(),
-            "harper-desktop"
+            crate::branding::DATA_FOLDER
         );
     }
 }

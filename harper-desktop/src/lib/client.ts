@@ -58,7 +58,48 @@ export interface UpdateResult {
 
 /** Provides an easy-to-use interface for interacting with the main Rust Tauri process.
  * Relevant because that is where the canonical state is stored. */
+export type AiModelId = 'Fast' | 'Accurate';
+
+export interface AiSettings {
+	enabled: boolean;
+	model: AiModelId;
+}
+
+export interface AiModelState {
+	downloaded: boolean;
+	downloading: boolean;
+	downloadedBytes: number;
+	totalBytes: number;
+	error: string | null;
+}
+
+export interface AiModelView {
+	id: AiModelId;
+	displayName: string;
+	state: AiModelState;
+}
+
 export class Client {
+	static async getAiSettings(): Promise<AiSettings> {
+		return await invoke<AiSettings>('get_ai_settings');
+	}
+
+	static async setAiSettings(settings: AiSettings): Promise<void> {
+		await invoke('set_ai_settings', { settings });
+	}
+
+	static async getAiModels(): Promise<AiModelView[]> {
+		return await invoke<AiModelView[]>('get_ai_models');
+	}
+
+	static async downloadAiModel(model: AiModelId): Promise<void> {
+		await invoke('download_ai_model', { model });
+	}
+
+	static async deleteAiModel(model: AiModelId): Promise<void> {
+		await invoke('delete_ai_model', { model });
+	}
+
 	static async getLintConfig(): Promise<LintConfig> {
 		return await invoke<LintConfig>('get_lint_config');
 	}

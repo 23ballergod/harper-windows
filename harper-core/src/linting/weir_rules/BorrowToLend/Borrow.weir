@@ -1,0 +1,25 @@
+expr obj [me, us, him, her, them]
+expr det [a, an, the, some, your, his, my, our, their, this, that, five, ten, any]
+expr main <(borrow @obj @det), borrow>
+
+let message "Use `lend` for giving something; `borrow` means taking something."
+let description "Corrects `borrow` followed by a recipient (`borrow me a pen`) to `lend`."
+let kind "WordChoice"
+let becomes "lend"
+
+test "Can you borrow me a pencil?" "Can you lend me a pencil?"
+test "Could you borrow me your car tomorrow?" "Could you lend me your car tomorrow?"
+test "Please borrow us some money." "Please lend us some money."
+test "Can you borrow him a jacket?" "Can you lend him a jacket?"
+test "Will you borrow her the book?" "Will you lend her the book?"
+test "I can borrow them ten dollars." "I can lend them ten dollars."
+test "Borrow me that pen." "Lend me that pen."
+
+allows "Can I borrow a pencil?"
+allows "Can I borrow her car?"
+allows "Can I borrow your pen?"
+allows "Can I borrow it from you?"
+allows "You can borrow mine."
+allows "Can you lend me a pencil?"
+allows "Can we borrow some chairs from them?"
+allows "May I borrow him for a minute?"

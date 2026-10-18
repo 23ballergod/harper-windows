@@ -49,6 +49,11 @@ pub fn application_message_handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool {
         stop_highlighter_service,
         launch_app,
         search_apps,
+        get_ai_settings,
+        set_ai_settings,
+        get_ai_models,
+        download_ai_model,
+        delete_ai_model,
     ]
 }
 
@@ -442,4 +447,53 @@ fn search_apps(
         .lock()
         .map_err(|error| format!("Failed to read platform broker: {error}"))?
         .search_apps(&query)
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AiModelView {
+    id: harper_ai::AiModel,
+    display_name: &'static str,
+    state: crate::ai::ModelState,
+}
+
+#[tauri::command]
+fn get_ai_settings() -> crate::ai::AiSettings {
+    crate::ai::AiSettings::load()
+}
+
+#[tauri::command]
+fn set_ai_settings(settings: crate::ai::AiSettings) -> Result<(), String> {
+    settings.save()
+}
+
+#[tauri::command]
+fn get_ai_models(downloads: State<'_, crate::ai::AiDownloads>) -> Vec<AiModelView> {
+    [harper_ai::AiModel::Fast, harper_ai::AiModel::Accurate]
+        .into_iter()
+        .map(|model| AiModelView {
+            id: model,
+            display_name: model.display_name(),
+            state: downloads.state(model),
+        })
+        .collect()
+}
+
+/// Starts a download in the background; the settings page polls `get_ai_models` for progress.
+#[tauri::command]
+fn download_ai_model<R: Runtime>(app: tauri::AppHandle<R>, model: harper_ai::AiModel) {
+    tauri::async_runtime::spawn(async move {
+        let downloads = app.state::<crate::ai::AiDownloads>();
+        if let Err(error) = downloads.download(model).await {
+            tracing::warn!("AI model download failed: {error}");
+        }
+    });
+}
+
+#[tauri::command]
+fn delete_ai_model(
+    downloads: State<'_, crate::ai::AiDownloads>,
+    model: harper_ai::AiModel,
+) -> Result<(), String> {
+    downloads.delete(model)
 }

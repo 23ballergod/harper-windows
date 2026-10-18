@@ -11,4 +11,6 @@ pub enum Error {
     Window(#[from] OsError),
     #[error("highlighter renderer failed: {0}")]
     Renderer(#[from] egui_wgpu::WgpuError),
+    #[error("this GPU cannot draw a see-through overlay, so underlines are turned off")]
+    NoTransparency,
 }

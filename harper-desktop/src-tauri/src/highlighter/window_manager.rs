@@ -18,6 +18,16 @@ use crate::os_broker::{LintText, OsBroker};
 use crate::rect::ActionableLint;
 
 const CONFIG_POLL_INTERVAL: Duration = Duration::from_secs(1);
+/// How long the pointer rests on an underline before its suggestions open, like Grammarly.
+const HOVER_OPEN_DELAY: Duration = Duration::from_millis(400);
+/// How long the pointer can be away from an underline and its card before the card closes.
+/// How often text is re-read while nothing is being interacted with.
+/// Minimum time between reads of the focused app's text.
+const READ_INTERVAL: Duration = Duration::from_millis(100);
+const IDLE_TICK: Duration = Duration::from_millis(120);
+/// How often to tick while the pointer is over an underline or a card is open.
+const ACTIVE_TICK: Duration = Duration::from_millis(30);
+const HOVER_CLOSE_DELAY: Duration = Duration::from_millis(700);
 
 /// Owns the winit event loop and the overlay windows created for each monitor.
 ///
@@ -26,7 +36,6 @@ const CONFIG_POLL_INTERVAL: Duration = Duration::from_secs(1);
 /// dispatch out of the public highlighter API.
 pub struct WindowManager {
     event_loop: EventLoop<()>,
-    context: egui::Context,
     rects: Vec<ActionableLint>,
     os_broker: Box<dyn OsBroker>,
     lint_text: LintText,
@@ -48,7 +57,6 @@ impl WindowManager {
     /// Creates the event loop before windows exist because winit requires window creation to happen
     /// from inside that loop's lifecycle callbacks.
     pub fn new(
-        context: egui::Context,
         os_broker: Box<dyn OsBroker>,
         callbacks: WindowManagerCallbacks,
     ) -> Result<Self, Error> {
@@ -61,7 +69,6 @@ impl WindowManager {
 
         Ok(Self {
             event_loop: event_loop_builder.build()?,
-            context,
             rects: Vec::new(),
             os_broker,
             lint_text: callbacks.lint_text,
@@ -81,7 +88,6 @@ impl WindowManager {
     /// event loop until the overlay exits.
     pub fn run_window_for_each_monitor(self) -> Result<(), Error> {
         let mut app = WindowManagerApp::new(
-            self.context,
             self.rects,
             self.os_broker,
             WindowManagerCallbacks {
@@ -93,7 +99,7 @@ impl WindowManager {
             },
         );
 
-        // Run continuously without a read timer; VSync presentation provides backpressure.
+        // Paced in `about_to_wait`: reading the screen in a tight loop kept a CPU core busy.
         self.event_loop.set_control_flow(ControlFlow::Poll);
         let result = self.event_loop.run_app(&mut app);
 
@@ -106,14 +112,20 @@ impl WindowManager {
 }
 
 struct WindowManagerApp {
-    context: egui::Context,
     windows: Vec<Window>,
     render_state: RenderState,
     os_broker: Box<dyn OsBroker>,
     lint_text: LintText,
     last_config_poll: Instant,
+    last_read: Instant,
     refresh_config: RefreshConfig,
     hovered_lint: Option<usize>,
+    /// When the pointer started resting on `hovered_lint`; cleared once its popup has opened.
+    hover_started: Option<Instant>,
+    /// When the pointer left the open card and its underline.
+    pointer_away_since: Option<Instant>,
+    /// Whether the left mouse button was down at the last check, to spot new clicks.
+    mouse_was_down: bool,
     cursor_hittest_enabled: bool,
     error: Option<Error>,
 }
@@ -122,13 +134,11 @@ impl WindowManagerApp {
     /// Builds the mutable application state consumed by winit callbacks after `WindowManager` gives
     /// up direct control of the event loop.
     fn new(
-        context: egui::Context,
         rects: Vec<ActionableLint>,
         os_broker: Box<dyn OsBroker>,
         callbacks: WindowManagerCallbacks,
     ) -> Self {
         Self {
-            context,
             windows: Vec::new(),
             render_state: RenderState::new(
                 rects,
@@ -139,8 +149,12 @@ impl WindowManagerApp {
             os_broker,
             lint_text: callbacks.lint_text,
             last_config_poll: Instant::now(),
+            last_read: Instant::now() - READ_INTERVAL,
             refresh_config: callbacks.refresh_config,
             hovered_lint: None,
+            hover_started: None,
+            pointer_away_since: None,
+            mouse_was_down: false,
             cursor_hittest_enabled: false,
             error: None,
         }
@@ -151,11 +165,25 @@ impl WindowManagerApp {
     fn read_rect_updates(&mut self) {
         let lints = self.os_broker.get_boxes(self.lint_text.as_mut());
         if let Some(lints) = lints {
+            crate::logging::note_change(
+                "overlay",
+                format!(
+                    "{} underlines to draw across {} screen(s)",
+                    lints.len(),
+                    self.windows.len()
+                ),
+            );
             self.render_state.set_lints(lints);
         }
 
-        for window in &self.windows {
-            window.request_redraw();
+        // Hide the overlay while there is nothing to draw, so a window that is always on top
+        // never sits over full-screen games or other apps that aren't being checked.
+        let visible = self.render_state.has_lints();
+        for window in &mut self.windows {
+            window.set_shown(visible);
+            if visible {
+                window.request_redraw();
+            }
         }
     }
 
@@ -165,17 +193,56 @@ impl WindowManagerApp {
 
     /// Toggles native click-through behavior based on the cursor's current interactive Harper target,
     /// keeping editor clicks from being swallowed when the pointer is outside highlights and popups.
-    fn update_cursor_hittest(&mut self, event_loop: &ActiveEventLoop) {
+    fn update_cursor_hittest(&mut self, _event_loop: &ActiveEventLoop) {
         let Some(cursor_pos) = self.os_broker.cursor_position() else {
             return;
         };
 
         let hit_target = self.render_state.hit_target_at_pos(cursor_pos);
 
-        self.hovered_lint = match hit_target {
+        let hovered_lint = match hit_target {
             HitTarget::Lint(index) => Some(index),
             HitTarget::Popup | HitTarget::None => None,
         };
+        if hovered_lint != self.hovered_lint {
+            self.hovered_lint = hovered_lint;
+            self.hover_started = hovered_lint.map(|_| Instant::now());
+        }
+        if let (Some(index), Some(started)) = (self.hovered_lint, self.hover_started)
+            && started.elapsed() >= HOVER_OPEN_DELAY
+        {
+            // Open once per visit, so closing the popup while still hovering keeps it closed.
+            self.hover_started = None;
+            self.render_state.set_highlighted_lint(Some(index));
+            for window in &self.windows {
+                window.request_redraw();
+            }
+        }
+
+        // Close the card once the pointer has moved off it and its underline for a moment.
+        if matches!(hit_target, HitTarget::None) && self.render_state.has_popup() {
+            let away = *self.pointer_away_since.get_or_insert_with(Instant::now);
+            if away.elapsed() >= HOVER_CLOSE_DELAY {
+                self.render_state.close_popup();
+                self.pointer_away_since = None;
+                for window in &self.windows {
+                    window.request_redraw();
+                }
+            }
+        } else {
+            self.pointer_away_since = None;
+        }
+
+        // A click anywhere outside our underlines and card means the user moved on: hide them
+        // until the text changes, since some apps keep reporting the old text box as focused.
+        let mouse_down = left_mouse_down();
+        if mouse_down && !self.mouse_was_down && matches!(hit_target, HitTarget::None) {
+            self.render_state.hide_until_changed();
+            for window in &self.windows {
+                window.request_redraw();
+            }
+        }
+        self.mouse_was_down = mouse_down;
 
         let should_enable_hittest = !matches!(hit_target, HitTarget::None);
 
@@ -185,8 +252,8 @@ impl WindowManagerApp {
 
         for window in &self.windows {
             if let Err(error) = window.set_cursor_hittest(should_enable_hittest) {
-                self.error = Some(error);
-                event_loop.exit();
+                // Transient (for example while the screen is locked); try again next tick.
+                crate::logging::note_change("overlay", format!("cursor hit-test failed: {error}"));
                 return;
             }
         }
@@ -217,7 +284,12 @@ impl ApplicationHandler for WindowManagerApp {
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         let now = Instant::now();
 
-        self.read_rect_updates();
+        // Mouse movement wakes the loop constantly; reading the focused app's text on every wake
+        // was the main cause of the PC slowing down.
+        if now.duration_since(self.last_read) >= READ_INTERVAL {
+            self.read_rect_updates();
+            self.last_read = now;
+        }
 
         if now.duration_since(self.last_config_poll) >= CONFIG_POLL_INTERVAL {
             self.refresh_config();
@@ -225,6 +297,15 @@ impl ApplicationHandler for WindowManagerApp {
         }
 
         self.update_cursor_hittest(event_loop);
+
+        // Re-read text a few times a second while idle, faster while the pointer is near our
+        // underlines so hover and the card stay responsive.
+        let interval = if self.cursor_hittest_enabled || self.render_state.has_popup() {
+            ACTIVE_TICK
+        } else {
+            IDLE_TICK
+        };
+        event_loop.set_control_flow(ControlFlow::WaitUntil(now + interval));
     }
 
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
@@ -235,7 +316,7 @@ impl ApplicationHandler for WindowManagerApp {
         let monitors = event_loop.available_monitors().collect::<Vec<_>>();
 
         for monitor in monitors {
-            match pollster::block_on(Window::new(event_loop, monitor, self.context.clone())) {
+            match pollster::block_on(Window::new(event_loop, monitor)) {
                 Ok(window) => self.windows.push(window),
                 Err(error) => {
                     self.error = Some(error);
@@ -248,7 +329,7 @@ impl ApplicationHandler for WindowManagerApp {
 
     fn window_event(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        _event_loop: &ActiveEventLoop,
         window_id: WindowId,
         event: WindowEvent,
     ) {
@@ -278,8 +359,20 @@ impl ApplicationHandler for WindowManagerApp {
             self.select_hit_lint();
         }
 
-        if matches!(&event, WindowEvent::CloseRequested) {
-            event_loop.exit();
-        }
+        // The overlay is never closed by request (Windows can send one during logoff or
+        // display changes); quitting is done by the main app stopping this process.
     }
+}
+
+#[cfg(windows)]
+fn left_mouse_down() -> bool {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+    // SAFETY: GetAsyncKeyState only reads global key state.
+    let state = unsafe { GetAsyncKeyState(VK_LBUTTON.0 as i32) };
+    state < 0
+}
+
+#[cfg(not(windows))]
+fn left_mouse_down() -> bool {
+    false
 }

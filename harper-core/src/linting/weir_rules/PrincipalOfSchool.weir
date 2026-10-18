@@ -1,0 +1,25 @@
+expr place [school, college, university, academy]
+expr acts [spoke, called, told, announced, asked, gave, sent, came, walked, yelled, suspended, expelled, visited, smiled, emailed, wants, wanted, met]
+expr main <[(principle of the @place @acts), (school principle @acts)], principle>
+
+let message "A person who runs a school is a `principal`; a `principle` is a rule or belief."
+let description "Corrects `principle` to `principal` when it clearly refers to the head of a school."
+let kind "WordChoice"
+let becomes "principal"
+
+test "The principle of the school spoke at the assembly." "The principal of the school spoke at the assembly."
+test "The principle of the school called my parents." "The principal of the school called my parents."
+test "The principle of the college announced the results." "The principal of the college announced the results."
+test "Our school principle told us to wait." "Our school principal told us to wait."
+test "The school principle suspended him." "The school principal suspended him."
+test "The principle of the academy gave a speech." "The principal of the academy gave a speech."
+test "The principle of the school wants to meet you." "The principal of the school wants to meet you."
+
+allows "The principle of the school is respect for everyone."
+allows "The founding principle of the school was equality."
+allows "The principal of the school spoke at the assembly."
+allows "This principle guides our decisions."
+allows "In principle, I agree."
+allows "The principal's office is upstairs."
+allows "The core principle of the school says that every child matters."
+allows "One principle of the university is academic freedom."

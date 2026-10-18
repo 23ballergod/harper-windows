@@ -154,7 +154,7 @@ function rulesFromSetting(setting: StructuredLintSetting): RuleItem[] {
 			{
 				id: setting.Bool.name,
 				name: setting.Bool.label ?? ruleLabelFromKey(setting.Bool.name),
-				desc: 'Harper rule from the curated rule catalog.',
+				desc: 'Built-in rule.',
 			},
 		];
 	}
@@ -163,7 +163,7 @@ function rulesFromSetting(setting: StructuredLintSetting): RuleItem[] {
 		return setting.OneOfMany.names.map((name, index) => ({
 			id: name,
 			name: setting.OneOfMany.labels?.[index] ?? ruleLabelFromKey(name),
-			desc: 'Harper rule option from the curated rule catalog.',
+			desc: 'Built-in rule option.',
 		}));
 	}
 

@@ -1,0 +1,19 @@
+expr main <([I, we, you, they] [am, are] agree), ([am, are] agree)>
+
+let message "`agree` is a verb, so it doesn't take `am` or `are`: say `I agree`."
+let description "Removes the extra `am` or `are` in `I am agree`."
+let kind "Grammar"
+let becomes "agree"
+
+test "I am agree with you." "I agree with you."
+test "We are agree on this point." "We agree on this point."
+test "They are agree with the plan." "They agree with the plan."
+test "You are agree, right?" "You agree, right?"
+test "I am agree." "I agree."
+
+allows "I agree with you."
+allows "We are agreed on this point."
+allows "They are in agreement."
+allows "I am agreeable to that."
+allows "Are you agreeing with me?"
+allows "I am happy to agree."
